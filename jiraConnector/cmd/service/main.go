@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/jiraconnector/cmd/app"
 	config "github.com/jiraconnector/internal/configReader"
 )
 
@@ -29,6 +30,17 @@ func main() {
 	log.Printf("set logger") //TEMP
 
 	//create connector app
+	a, err := app.NewApp(cfg)
+	if err != nil {
+		log.Println("error create app")
+		panic(err)
+	}
+	log.Println("created app")
 
 	//start app
+	if err := a.Run(); err != nil {
+		log.Println("error run app")
+		panic(err)
+	}
+	defer a.Close()
 }
