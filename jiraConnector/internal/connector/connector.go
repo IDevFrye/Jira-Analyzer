@@ -14,7 +14,7 @@ import (
 
 	configreader "github.com/jiraconnector/internal/configReader"
 	myErr "github.com/jiraconnector/internal/connector/errors"
-	structures "github.com/jiraconnector/internal/structurs"
+	"github.com/jiraconnector/internal/structures"
 )
 
 type JiraConnector struct {
