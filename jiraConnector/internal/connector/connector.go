@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	handlerErr "github.com/jiraconnector/internal/apiJiraConnector/jiraHandlers/errors"
 	configreader "github.com/jiraconnector/internal/configReader"
 	myErr "github.com/jiraconnector/internal/connector/errors"
 	"github.com/jiraconnector/internal/structures"
@@ -242,7 +243,7 @@ func (con *JiraConnector) retryRequest(method, url string) (*http.Response, erro
 		resp, err = con.client.Do(req)
 
 		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
-			return nil, err
+			return nil, handlerErr.ErrNoProject
 		}
 
 		// if everything ok - return resp

@@ -37,7 +37,7 @@ func (dbp *DbPusher) Close() {
 
 func (dbp *DbPusher) PushProject(project structures.DBProject) (int, error) {
 	var projectId int
-	query := "INSERT INTO project (title) VALUES ($1) ON CONFLICT (title) DO NOTHING RETURNING id"
+	query := "INSERT INTO projects (title) VALUES ($1) ON CONFLICT (title) DO NOTHING RETURNING id"
 
 	if err := dbp.db.QueryRow(query, project.Title).Scan(&projectId); err != nil {
 		ansErr := fmt.Errorf("%w - %s :: %w", myerr.ErrInsertProject, project.Title, err)
@@ -223,7 +223,7 @@ func (dbp *DbPusher) getAuthorId(author structures.DBAuthor) (int, error) {
 func (dbp *DbPusher) getProjectId(project string) (int, error) {
 	var projectId int
 	var err error
-	query := "SELECT id FROM project WHERE title=$1"
+	query := "SELECT id FROM projects WHERE title=$1"
 
 	_ = dbp.db.QueryRow(query, project).Scan(&projectId)
 	if projectId == 0 {
@@ -250,7 +250,7 @@ func (dbp *DbPusher) hasStatusChange(issue int, time time.Time) bool {
 
 func buildConnectionstring(cfg *configreader.DBConfig) string {
 	return fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		cfg.Host,
 		cfg.Port,
 		cfg.User,

@@ -48,6 +48,7 @@ func NewApp(cfg configreader.Config) (*JiraApp, error) {
 	return &JiraApp{
 		server:        server,
 		jiraConnector: con,
+		db:            dbPusher,
 	}, nil
 }
 
