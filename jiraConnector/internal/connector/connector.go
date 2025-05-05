@@ -18,6 +18,8 @@ import (
 	"github.com/jiraconnector/internal/structures"
 )
 
+//go:generate mockery --name=JiraConnectorInterface --case=underscore --output=./mocks
+
 type JiraConnector struct {
 	cfg    *configreader.JiraConfig
 	client *http.Client

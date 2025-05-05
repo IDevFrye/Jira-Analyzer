@@ -13,6 +13,8 @@ import (
 	"github.com/jiraconnector/internal/structures"
 )
 
+//go:generate mockery --name=JiraServiceInterface --case=underscore --output=./mocks
+
 type JiraServiceInterface interface {
 	GetProjectsPage(search string, limit, page int) (*structures.ResponseProject, error)
 	UpdateProjects(projectId string) ([]structures.JiraIssue, error)
