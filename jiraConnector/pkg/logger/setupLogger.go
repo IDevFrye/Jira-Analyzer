@@ -49,6 +49,10 @@ func SetupLogger(env string, logFile string) *slog.Logger {
 		log = slog.New(
 			slog.NewJSONHandler(logFilePath, &slog.HandlerOptions{Level: slog.LevelInfo, AddSource: false}),
 		)
+	default:
+		log = slog.New(
+			slog.NewJSONHandler(logFilePath, &slog.HandlerOptions{Level: slog.LevelDebug, AddSource: true}),
+		)
 	}
 
 	return log

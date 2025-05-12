@@ -35,6 +35,10 @@ func NewDbPusher(cfg *config.Config, log *slog.Logger) (*DbPusher, error) {
 	}, nil
 }
 
+func (dbp *DbPusher) Db() *sql.DB {
+	return dbp.db
+}
+
 func (dbp *DbPusher) Close() {
 	dbp.log.Info("close db connection")
 	dbp.db.Close()
