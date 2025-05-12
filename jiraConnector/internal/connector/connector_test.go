@@ -1,135 +1,458 @@
-package connector_test
+package connector
 
 import (
 	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
+	handlerErr "github.com/jiraconnector/internal/apiJiraConnector/jiraHandlers/errors"
 	configreader "github.com/jiraconnector/internal/configReader"
-	"github.com/jiraconnector/internal/connector"
-	"github.com/jiraconnector/internal/connector/mocks"
+	myErr "github.com/jiraconnector/internal/connector/errors"
 	"github.com/jiraconnector/internal/structures"
-
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetAllProjects(t *testing.T) {
-	testProjects := []structures.JiraProject{
-		{Id: "1", Name: "Project_1", Key: "Key_1", Self: "url_1"},
-		{Id: "2", Name: "Project_2", Key: "Key_2", Self: "url_2"},
-	}
-
-	//mock server
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/rest/api/2/project", r.URL.Path)
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(testProjects)
-	}))
-	defer server.Close()
-
-	//test config
-	config := configreader.Config{
+func mockConnectorWithURL(url string) *JiraConnector {
+	cfg := configreader.Config{
 		JiraCfg: configreader.JiraConfig{
-			Url:           server.URL,
-			ThreadCount:   1,
-			IssueInOneReq: 100,
-			MinSleep:      50,
-			MaxSleep:      500,
+			Url:           url,
+			MinSleep:      int(10 * time.Millisecond),
+			MaxSleep:      int(100 * time.Millisecond),
+			ThreadCount:   2,
+			IssueInOneReq: 1,
 		},
 	}
-	conn := connector.NewJiraConnector(config)
+	return NewJiraConnector(cfg)
+}
 
-	//test method
-	projects, err := conn.GetAllProjects()
-	assert.NoError(t, err)
-	assert.Equal(t, len(testProjects), len(projects))
-	assert.Equal(t, testProjects[0].Name, projects[0].Name)
+func TestGetAllProjects(t *testing.T) {
+	tests := []struct {
+		name           string
+		handler        http.HandlerFunc
+		expectErr      bool
+		expectedLength int
+	}{
+		{
+			name: "successful request",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/rest/api/2/project", r.URL.Path)
+				projects := []structures.JiraProject{
+					{Id: "1", Name: "Test1"},
+					{Id: "2", Name: "Test2"},
+				}
+				json.NewEncoder(w).Encode(projects)
+			},
+			expectErr:      false,
+			expectedLength: 2,
+		},
+		{
+			name: "inval Id JSON",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				io.WriteString(w, `invalid json`)
+			},
+			expectErr:      true,
+			expectedLength: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(tt.handler)
+			defer server.Close()
+
+			conn := mockConnectorWithURL(server.URL)
+			projects, err := conn.GetAllProjects()
+
+			assert.Equal(t, tt.expectErr, err != nil)
+			assert.Len(t, projects, tt.expectedLength)
+		})
+	}
 }
 
 func TestGetProjectsPage(t *testing.T) {
-	mockConnector := new(mocks.JiraConnectorInterface)
+	allProjects := []structures.JiraProject{
+		{Id: "1", Name: "Alpha"},
+		{Id: "2", Name: "Beta"},
+		{Id: "3", Name: "Gamma"},
+	}
 
-	mockConnector.On("GetAllProjects").Return([]structures.JiraProject{
-		{Id: "1", Name: "Project_1", Key: "Key_1", Self: "url_1"},
-		{Id: "2", Name: "Project_2", Key: "Key_2", Self: "url_2"},
-		{Id: "3", Name: "Project_3", Key: "Key_3", Self: "url_3"},
-	}, nil)
+	tests := []struct {
+		name       string
+		search     string
+		page       int
+		limit      int
+		expectSize int
+	}{
+		{"no filter, page 1", "", 1, 2, 2},
+		{"search Beta", "Beta", 1, 2, 1},
+		{"out of range page", "", 10, 2, 0},
+	}
 
-	mockConnector.On("GetProjectsPage", "Project", 2, 2).Return(&structures.ResponseProject{
-		Projects: []structures.JiraProject{
-			{Id: "2", Name: "Project_2", Key: "Key_2", Self: "url_2"},
-			{Id: "3", Name: "Project_3", Key: "Key_3", Self: "url_3"},
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(allProjects)
+	}))
+	defer server.Close()
+
+	conn := mockConnectorWithURL(server.URL)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := conn.GetProjectsPage(tt.search, tt.limit, tt.page)
+			assert.NoError(t, err)
+			assert.Len(t, result.Projects, tt.expectSize)
+		})
+	}
+}
+
+func TestRetryRequest(t *testing.T) {
+	var attempt int32 = 0
+
+	tests := []struct {
+		name        string
+		handler     http.HandlerFunc
+		expectErr   bool
+		expectRetry bool
+	}{
+		{
+			name: "successful on first try",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				io.WriteString(w, "OK")
+			},
+			expectErr:   false,
+			expectRetry: false,
 		},
-		PageInfo: structures.PageInfo{
-			PageCount:     2,
-			CurrentPage:   2,
-			ProjectsCount: 3,
+		{
+			name: "too many retries",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
+			},
+			expectErr:   true,
+			expectRetry: true,
 		},
-	}, nil)
+		{
+			name: "404 returns immediately",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "Not Found", http.StatusNotFound)
+			},
+			expectErr:   true,
+			expectRetry: false,
+		},
+	}
 
-	result, err := mockConnector.GetProjectsPage("Project", 2, 2)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			atomic.StoreInt32(&attempt, 0)
 
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Equal(t, 2, len(result.Projects))
-	assert.Equal(t, "Project_2", result.Projects[0].Name)
-	assert.Equal(t, 2, result.PageInfo.CurrentPage)
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				atomic.AddInt32(&attempt, 1)
+				tt.handler(w, r)
+			}))
+			defer server.Close()
 
-	mockConnector.AssertCalled(t, "GetProjectsPage", "Project", 2, 2)
+			conn := mockConnectorWithURL(server.URL)
+			resp, err := conn.retryRequest("GET", server.URL)
+
+			if resp != nil {
+				resp.Body.Close()
+			}
+			assert.Equal(t, tt.expectErr, err != nil)
+		})
+	}
 }
 
 func TestGetProjectIssues(t *testing.T) {
+	type mockResponse struct {
+		pathContains string
+		response     string
+	}
 
-	testIssues := structures.JiraIssues{
-		StartAt:    1,
-		MaxResults: 3,
-		Total:      3,
-		Issues: []structures.JiraIssue{
-			{Id: "1", Key: "TEST-1", Fields: structures.Field{}},
-			{Id: "2", Key: "TEST-2", Fields: structures.Field{}},
-			{Id: "3", Key: "TEST-3", Fields: structures.Field{}},
-		},
+	// simulate issue retrievals
+	responses := []mockResponse{
+		{pathContains: "maxResults=0", response: `{"total": 2}`},
+		{pathContains: "startAt=1", response: `{"issues":[{"id":"1","key":"ISSUE-1"}]}`},
+		{pathContains: "startAt=2", response: `{"issues":[{"id":"2","key":"ISSUE-2"}]}`},
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(testIssues)
+		for _, resp := range responses {
+			if strings.Contains(r.URL.String(), resp.pathContains) {
+				io.WriteString(w, resp.response)
+				return
+			}
+		}
+		http.Error(w, "unexpected path", http.StatusNotFound)
 	}))
 	defer server.Close()
 
-	config := configreader.Config{
-		JiraCfg: configreader.JiraConfig{
-			Url:           server.URL,
-			ThreadCount:   1,
-			IssueInOneReq: 50,
-			MinSleep:      50,
-			MaxSleep:      500,
-		},
-	}
-	conn := connector.NewJiraConnector(config)
-
+	conn := mockConnectorWithURL(server.URL)
 	issues, err := conn.GetProjectIssues("TEST")
 	assert.NoError(t, err)
-	assert.Equal(t, len(testIssues.Issues), len(issues))
+	assert.Len(t, issues, 2)
+	assert.Equal(t, "ISSUE-1", issues[0].Key)
 }
 
-func TestGetAllProjectsInvalidJSON(t *testing.T) {
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("invalid json"))
-	}))
-	defer server.Close()
-
-	config := configreader.Config{
-		JiraCfg: configreader.JiraConfig{
-			Url: server.URL,
+func TestGetAllProjects_ErrorCases(t *testing.T) {
+	tests := []struct {
+		name      string
+		handler   http.HandlerFunc
+		expectErr error
+	}{
+		{
+			name: "request error",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "Not Found", http.StatusNotFound)
+			},
+			expectErr: handlerErr.ErrNoProject,
+		},
+		{
+			name: "read body error",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Length", "1") // Force read error
+			},
+			expectErr: myErr.ErrReadResponseBody,
 		},
 	}
-	conn := connector.NewJiraConnector(config)
 
-	projects, err := conn.GetAllProjects()
-	assert.Error(t, err)
-	assert.Nil(t, projects)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(tt.handler)
+			defer server.Close()
+
+			conn := mockConnectorWithURL(server.URL)
+			_, err := conn.GetAllProjects()
+			assert.Error(t, err)
+			if tt.expectErr != nil {
+				assert.True(t, errors.Is(err, tt.expectErr), "expected error %v, got %v", tt.expectErr, err)
+			}
+		})
+	}
+}
+
+func TestGetProjectsPage_ErrorCases(t *testing.T) {
+	tests := []struct {
+		name      string
+		handler   http.HandlerFunc
+		expectErr error
+	}{
+		{
+			name: "error in GetAllProjects",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "Internal Error", http.StatusInternalServerError)
+			},
+			expectErr: myErr.ErrGetProjects,
+		},
+		{
+			name: "invalid pagination",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				projects := []structures.JiraProject{{Id: "1", Name: "Test"}}
+				json.NewEncoder(w).Encode(projects)
+			},
+			expectErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(tt.handler)
+			defer server.Close()
+
+			conn := mockConnectorWithURL(server.URL)
+			_, err := conn.GetProjectsPage("", -1, -1) // Invalid page/limit
+			if tt.expectErr != nil {
+				assert.Error(t, err)
+				assert.True(t, errors.Is(err, tt.expectErr))
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestGetProjectIssues_ErrorCases(t *testing.T) {
+	tests := []struct {
+		name      string
+		handler   http.HandlerFunc
+		expectErr error
+	}{
+		{
+			name: "error getting total issues",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				if strings.Contains(r.URL.String(), "maxResults=0") {
+					http.Error(w, "Error", http.StatusInternalServerError)
+					return
+				}
+				w.Write([]byte(`{"issues":[]}`))
+			},
+			expectErr: myErr.ErrGetIssues,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(tt.handler)
+			defer server.Close()
+
+			conn := mockConnectorWithURL(server.URL)
+			_, err := conn.GetProjectIssues("TEST")
+			assert.Error(t, err)
+			if tt.expectErr != nil {
+				assert.True(t, errors.Is(err, tt.expectErr))
+			}
+		})
+	}
+}
+
+func TestGetIssuesForOneThread_ErrorCases(t *testing.T) {
+	tests := []struct {
+		name      string
+		handler   http.HandlerFunc
+		expectErr error
+	}{
+		{
+			name: "request error",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "Error", http.StatusInternalServerError)
+			},
+			expectErr: myErr.ErrGetIssues,
+		},
+		{
+			name: "invalid JSON",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				w.Write([]byte(`invalid json`))
+			},
+			expectErr: myErr.ErrUnmarshalAns,
+		},
+		{
+			name: "read body error",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Length", "1000")
+				w.Write([]byte("short body")) // Отправляем меньше данных чем объявлено
+			},
+			expectErr: myErr.ErrReadResponseBody,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(tt.handler)
+			defer server.Close()
+
+			conn := mockConnectorWithURL(server.URL)
+			_, err := conn.getIssuesForOneThread(0, "TEST")
+			assert.Error(t, err)
+			if tt.expectErr != nil {
+				assert.True(t, errors.Is(err, tt.expectErr))
+			}
+		})
+	}
+}
+
+func TestGetTotalIssues_ErrorCases(t *testing.T) {
+	tests := []struct {
+		name      string
+		handler   http.HandlerFunc
+		expectErr error
+	}{
+		{
+			name: "request error",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "Error", http.StatusInternalServerError)
+			},
+			expectErr: myErr.ErrGetIssues,
+		},
+		{
+			name: "invalid JSON",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				w.Write([]byte(`invalid json`))
+			},
+			expectErr: myErr.ErrUnmarshalAns,
+		},
+		{
+			name: "read body error",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Length", "1000")
+				w.Write([]byte("short body")) // Отправляем меньше данных чем объявлено
+			},
+			expectErr: myErr.ErrReadResponseBody,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(tt.handler)
+			defer server.Close()
+
+			conn := mockConnectorWithURL(server.URL)
+			_, err := conn.getTotalIssues("TEST")
+			assert.Error(t, err)
+			if tt.expectErr != nil {
+				assert.True(t, errors.Is(err, tt.expectErr))
+			}
+		})
+	}
+}
+
+func TestRetryRequest_ErrorCases(t *testing.T) {
+	tests := []struct {
+		name      string
+		handler   http.HandlerFunc
+		expectErr error
+	}{
+		{
+			name: "max retries exceeded",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "Error", http.StatusInternalServerError)
+			},
+			expectErr: myErr.ErrMaxTimeRequest,
+		},
+		{
+			name: "bad request",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "Bad Request", http.StatusBadRequest)
+			},
+			expectErr: handlerErr.ErrNoProject,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(tt.handler)
+			defer server.Close()
+
+			conn := mockConnectorWithURL(server.URL)
+			_, err := conn.retryRequest("GET", server.URL)
+			assert.Error(t, err)
+			if tt.expectErr != nil {
+				assert.True(t, errors.Is(err, tt.expectErr))
+			}
+		})
+	}
+}
+
+func TestContainsSearchProject(t *testing.T) {
+	tests := []struct {
+		name     string
+		str      string
+		substr   string
+		expected bool
+	}{
+		{"exact match", "TestProject", "TestProject", true},
+		{"case insensitive", "TestProject", "testproject", true},
+		{"partial match", "TestProject", "Test", true},
+		{"no match", "TestProject", "Other", false},
+		{"empty substring", "TestProject", "", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := containsSearchProject(tt.str, tt.substr)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }

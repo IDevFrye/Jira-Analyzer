@@ -10,6 +10,7 @@ import (
 	jiraservice "github.com/jiraconnector/internal/apiJiraConnector/jiraService"
 	configreader "github.com/jiraconnector/internal/configReader"
 	"github.com/jiraconnector/internal/connector"
+	datatransformer "github.com/jiraconnector/internal/dataTransformer"
 	dbpusher "github.com/jiraconnector/internal/dbPusher"
 )
 
@@ -28,7 +29,9 @@ func NewApp(cfg configreader.Config) (*JiraApp, error) {
 		return nil, err
 	}
 
-	service, err := jiraservice.NewJiraService(cfg, *con, *dbPusher)
+	datatransformer := datatransformer.NewDataTransformer()
+
+	service, err := jiraservice.NewJiraService(&cfg, con, datatransformer, dbPusher)
 	if err != nil {
 		ansErr := fmt.Errorf("error create service: %w", err)
 		log.Println(ansErr)

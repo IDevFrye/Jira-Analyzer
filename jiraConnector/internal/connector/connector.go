@@ -18,17 +18,9 @@ import (
 	"github.com/jiraconnector/internal/structures"
 )
 
-//go:generate mockery --name=JiraConnectorInterface --case=underscore --output=./mocks
-
 type JiraConnector struct {
 	cfg    *configreader.JiraConfig
 	client *http.Client
-}
-
-type JiraConnectorInterface interface {
-	GetAllProjects() ([]structures.JiraProject, error)
-	GetProjectsPage(search string, limit, page int) (*structures.ResponseProject, error)
-	GetProjectIssues(project string) ([]structures.JiraIssue, error)
 }
 
 func NewJiraConnector(config configreader.Config) *JiraConnector {
@@ -180,7 +172,7 @@ func (con *JiraConnector) getIssuesForOneThread(startAt int, project string) ([]
 	resp, err := con.retryRequest("GET", url)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return nil, myErr.ErrGetIssues
 	}
 	defer resp.Body.Close()
 
@@ -207,7 +199,7 @@ func (con *JiraConnector) getTotalIssues(project string) (int, error) {
 	resp, err := con.retryRequest("GET", url)
 	if err != nil {
 		log.Println(err)
-		return 0, err
+		return 0, myErr.ErrGetIssues
 	}
 	defer resp.Body.Close()
 

@@ -5,22 +5,49 @@ import (
 	"log"
 
 	configreader "github.com/jiraconnector/internal/configReader"
-	"github.com/jiraconnector/internal/connector"
 	datatransformer "github.com/jiraconnector/internal/dataTransformer"
-	dbpusher "github.com/jiraconnector/internal/dbPusher"
 	"github.com/jiraconnector/internal/structures"
 )
 
-type JiraService struct {
-	jiraConnector   connector.JiraConnector
-	dataTransformer datatransformer.DataTransformer
-	dbPusher        dbpusher.DbPusher
+//go:generate mockery
+
+type JiraConnectorInterface interface {
+	GetAllProjects() ([]structures.JiraProject, error)
+	GetProjectsPage(search string, limit, page int) (*structures.ResponseProject, error)
+	GetProjectIssues(project string) ([]structures.JiraIssue, error)
 }
 
-func NewJiraService(config configreader.Config, jiraConnector connector.JiraConnector, dbPusher dbpusher.DbPusher) (*JiraService, error) {
+type DataTransformerInterface interface {
+	TransformStatusDB(jiraChanges structures.Changelog) map[string]structures.DBStatusChanges
+	TransformAuthorDB(jiraAuthor structures.User) structures.DBAuthor
+	TransformProjectDB(jiraProject structures.JiraProject) structures.DBProject
+	TransformIssueDB(jiraIssue structures.JiraIssue) structures.DBIssue
+	TransformToDbIssueSet(projectName string, jiraIssue structures.JiraIssue) *datatransformer.DataTransformer
+}
+
+type DbPusherInterface interface {
+	PushProject(project structures.DBProject) (int, error)
+	PushProjects(projects []structures.DBProject) error
+	PushStatusChanges(issue int, changes datatransformer.DataTransformer) error
+	PushIssue(project string, issue datatransformer.DataTransformer) (int, error)
+	PushIssues(project string, issues []datatransformer.DataTransformer) error
+	Close()
+}
+
+type JiraService struct {
+	jiraConnector   JiraConnectorInterface
+	dataTransformer DataTransformerInterface
+	dbPusher        DbPusherInterface
+}
+
+func NewJiraService(
+	config *configreader.Config,
+	jiraConnector JiraConnectorInterface,
+	dataTransformer DataTransformerInterface,
+	dbPusher DbPusherInterface) (*JiraService, error) {
 	return &JiraService{
 		jiraConnector:   jiraConnector,
-		dataTransformer: *datatransformer.NewDataTransformer(),
+		dataTransformer: dataTransformer,
 		dbPusher:        dbPusher,
 	}, nil
 }

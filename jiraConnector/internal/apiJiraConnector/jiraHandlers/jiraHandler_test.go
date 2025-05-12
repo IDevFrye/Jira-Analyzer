@@ -1,65 +1,358 @@
-package jirahandlers_test
+package jirahandlers
 
 import (
-	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strconv"
 	"testing"
 
 	"github.com/gorilla/mux"
-	jirahandlers "github.com/jiraconnector/internal/apiJiraConnector/jiraHandlers"
-	"github.com/jiraconnector/internal/apiJiraConnector/jiraHandlers/mocks"
+	myErr "github.com/jiraconnector/internal/apiJiraConnector/jiraHandlers/errors"
 	"github.com/jiraconnector/internal/structures"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
-func TestProjectsHandler(t *testing.T) {
-	mockService := new(mocks.JiraServiceInterface)
+func TestHandler_Projects(t *testing.T) {
+	tests := []struct {
+		name           string
+		queryParams    map[string]string
+		mockReturn     *structures.ResponseProject
+		mockError      error
+		expectedStatus int
+		expectedError  error
+	}{
+		{
+			name: "successful request with default params",
+			queryParams: map[string]string{
+				"limit":  "",
+				"page":   "",
+				"search": "",
+			},
+			mockReturn:     &structures.ResponseProject{},
+			mockError:      nil,
+			expectedStatus: http.StatusOK,
+			expectedError:  nil,
+		},
+		{
+			name: "successful request with custom params",
+			queryParams: map[string]string{
+				"limit":  "10",
+				"page":   "2",
+				"search": "test",
+			},
+			mockReturn:     &structures.ResponseProject{},
+			mockError:      nil,
+			expectedStatus: http.StatusOK,
+			expectedError:  nil,
+		},
+		{
+			name: "invalid limit parameter",
+			queryParams: map[string]string{
+				"limit": "invalid",
+			},
+			mockReturn:     nil,
+			mockError:      nil,
+			expectedStatus: myErr.GetStatusCode(myErr.ErrorsProject, myErr.ErrParamLimitPage),
+			expectedError:  myErr.ErrParamLimitPage,
+		},
+		{
+			name: "invalid page parameter",
+			queryParams: map[string]string{
+				"page": "invalid",
+			},
+			mockReturn:     nil,
+			mockError:      nil,
+			expectedStatus: myErr.GetStatusCode(myErr.ErrorsProject, myErr.ErrParamLimitPage),
+			expectedError:  myErr.ErrParamLimitPage,
+		},
+		{
+			name: "service error",
+			queryParams: map[string]string{
+				"search": "test",
+				"limit":  "10",
+				"page":   "1",
+			},
+			mockReturn:     nil,
+			mockError:      errors.New("service error"),
+			expectedStatus: myErr.GetStatusCode(myErr.ErrorsProject, myErr.ErrGetProjectPage),
+			expectedError:  myErr.ErrGetProjectPage,
+		},
+	}
 
-	mockService.On("GetProjectsPage", "", 20, 1).
-		Return(&structures.ResponseProject{
-			Projects: []structures.JiraProject{{Id: "1", Name: "Test Project"}},
-			PageInfo: structures.PageInfo{PageCount: 1, CurrentPage: 1, ProjectsCount: 1},
-		}, nil)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockService := new(MockJiraServiceInterface)
 
-	router := mux.NewRouter()
-	handler := jirahandlers.NewHandler(mockService, router)
+			limit, _ := strconv.Atoi(tt.queryParams["limit"])
+			if limit == 0 {
+				limit = 20
+			}
+			page, _ := strconv.Atoi(tt.queryParams["page"])
+			if page == 0 {
+				page = 1
+			}
+			search := tt.queryParams["search"]
 
-	req, _ := http.NewRequest("GET", "/projects", nil)
-	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+			mockService.On("GetProjectsPage", search, limit, page).Return(tt.mockReturn, tt.mockError)
 
-	assert.Equal(t, http.StatusOK, rr.Code)
+			router := mux.NewRouter()
+			_ = NewHandler(mockService, router)
 
-	var response structures.ResponseProject
-	err := json.Unmarshal(rr.Body.Bytes(), &response)
-	assert.NoError(t, err)
-	assert.Equal(t, "Test Project", response.Projects[0].Name)
+			req, err := http.NewRequest("GET", "/projects", nil)
+			assert.NoError(t, err)
 
-	mockService.AssertExpectations(t)
+			q := req.URL.Query()
+			for key, value := range tt.queryParams {
+				q.Add(key, value)
+			}
+			req.URL.RawQuery = q.Encode()
+
+			rr := httptest.NewRecorder()
+
+			router.ServeHTTP(rr, req)
+
+			assert.Equal(t, tt.expectedStatus, rr.Code)
+
+			if tt.expectedError == nil && tt.mockError == nil {
+				mockService.AssertExpectations(t)
+			}
+		})
+	}
 }
 
-func TestUpdateProjectHandler_Success(t *testing.T) {
-	mockService := new(mocks.JiraServiceInterface)
+func TestHandler_UpdateProject(t *testing.T) {
+	tests := []struct {
+		name           string
+		queryParam     string
+		mockIssues     []structures.JiraIssue
+		mockError      error
+		pushError      error
+		expectedStatus int
+		expectedError  error
+	}{
+		{
+			name:           "successful update",
+			queryParam:     "TESTPROJ",
+			mockIssues:     []structures.JiraIssue{},
+			mockError:      nil,
+			pushError:      nil,
+			expectedStatus: http.StatusOK,
+			expectedError:  nil,
+		},
+		{
+			name:           "missing project parameter",
+			queryParam:     "",
+			mockIssues:     nil,
+			mockError:      nil,
+			pushError:      nil,
+			expectedStatus: myErr.GetStatusCode(myErr.ErrorsUpdate, myErr.ErrParamProject),
+			expectedError:  myErr.ErrParamProject,
+		},
+		{
+			name:           "project not found",
+			queryParam:     "UNKNOWN",
+			mockIssues:     nil,
+			mockError:      myErr.ErrNoProject,
+			pushError:      nil,
+			expectedStatus: myErr.GetStatusCode(myErr.ErrorsUpdate, myErr.ErrNoProject),
+			expectedError:  myErr.ErrNoProject,
+		},
+		{
+			name:           "update project error",
+			queryParam:     "TESTPROJ",
+			mockIssues:     nil,
+			mockError:      errors.New("update error"),
+			pushError:      nil,
+			expectedStatus: myErr.GetStatusCode(myErr.ErrorsUpdate, myErr.ErrUpdProject),
+			expectedError:  myErr.ErrUpdProject,
+		},
+		{
+			name:           "push to db error",
+			queryParam:     "TESTPROJ",
+			mockIssues:     []structures.JiraIssue{},
+			mockError:      nil,
+			pushError:      errors.New("push error"),
+			expectedStatus: myErr.GetStatusCode(myErr.ErrorsUpdate, myErr.ErrPushProject),
+			expectedError:  myErr.ErrPushProject,
+		},
+	}
 
-	mockService.On("UpdateProjects", "TestProject").
-		Return([]structures.JiraIssue{{Key: "ISSUE-1"}}, nil)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Создаем mock сервиса
+			mockService := new(MockJiraServiceInterface)
 
-	mockService.On("PushDataToDb", "TestProject", mock.Anything).
-		Return(nil)
+			// Настраиваем mock только если есть project параметр
+			if tt.queryParam != "" {
+				mockService.On("UpdateProjects", tt.queryParam).Return(tt.mockIssues, tt.mockError)
 
-	router := mux.NewRouter()
-	handler := jirahandlers.NewHandler(mockService, router)
+				// Если нет ошибки обновления, ожидаем вызов PushDataToDb
+				if tt.mockError == nil {
+					mockService.On("PushDataToDb", tt.queryParam, tt.mockIssues).Return(tt.pushError)
+				}
+			}
 
-	req, _ := http.NewRequest("POST", "/updateProject?project=TestProject", nil)
-	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+			// Создаем router и хендлер
+			router := mux.NewRouter()
+			_ = NewHandler(mockService, router)
 
-	assert.Equal(t, http.StatusOK, rr.Code)
+			// Создаем запрос с query параметром
+			req, err := http.NewRequest("POST", "/updateProject", nil)
+			assert.NoError(t, err)
 
-	expectedResponse := `{"TestProject":"updated"}`
-	assert.JSONEq(t, expectedResponse, rr.Body.String())
+			q := req.URL.Query()
+			if tt.queryParam != "" {
+				q.Add("project", tt.queryParam)
+			}
+			req.URL.RawQuery = q.Encode()
 
-	mockService.AssertExpectations(t)
+			// Создаем ResponseRecorder для записи ответа
+			rr := httptest.NewRecorder()
+
+			// Выполняем запрос
+			router.ServeHTTP(rr, req)
+
+			// Проверяем статус код
+			assert.Equal(t, tt.expectedStatus, rr.Code)
+
+			// Проверяем вызовы mock
+			mockService.AssertExpectations(t)
+		})
+	}
+}
+
+func TestGetProjectParams(t *testing.T) {
+	tests := []struct {
+		name        string
+		queryParams map[string][]string // Изменено на []string
+		expected    struct {
+			limit  int
+			page   int
+			search string
+			err    error
+		}
+	}{
+		{
+			name:        "default values",
+			queryParams: map[string][]string{},
+			expected: struct {
+				limit  int
+				page   int
+				search string
+				err    error
+			}{
+				limit:  20,
+				page:   1,
+				search: "",
+				err:    nil,
+			},
+		},
+		{
+			name: "custom values",
+			queryParams: map[string][]string{
+				"limit":  {"50"},
+				"page":   {"3"},
+				"search": {"test"},
+			},
+			expected: struct {
+				limit  int
+				page   int
+				search string
+				err    error
+			}{
+				limit:  50,
+				page:   3,
+				search: "test",
+				err:    nil,
+			},
+		},
+		{
+			name: "invalid limit",
+			queryParams: map[string][]string{
+				"limit": {"invalid"},
+			},
+			expected: struct {
+				limit  int
+				page   int
+				search string
+				err    error
+			}{
+				limit:  0,
+				page:   0,
+				search: "",
+				err:    myErr.ErrParamLimitPage,
+			},
+		},
+		{
+			name: "invalid page",
+			queryParams: map[string][]string{
+				"page": {"invalid"},
+			},
+			expected: struct {
+				limit  int
+				page   int
+				search string
+				err    error
+			}{
+				limit:  0,
+				page:   0,
+				search: "",
+				err:    myErr.ErrParamLimitPage,
+			},
+		},
+		{
+			name: "zero limit",
+			queryParams: map[string][]string{
+				"limit": {"0"},
+			},
+			expected: struct {
+				limit  int
+				page   int
+				search string
+				err    error
+			}{
+				limit:  0,
+				page:   0,
+				search: "",
+				err:    myErr.ErrParamLimitPage,
+			},
+		},
+		{
+			name: "zero page",
+			queryParams: map[string][]string{
+				"page": {"0"},
+			},
+			expected: struct {
+				limit  int
+				page   int
+				search string
+				err    error
+			}{
+				limit:  0,
+				page:   0,
+				search: "",
+				err:    myErr.ErrParamLimitPage,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Создаем запрос с query параметрами
+			req := &http.Request{
+				URL: &url.URL{
+					RawQuery: url.Values(tt.queryParams).Encode(),
+				},
+			}
+
+			limit, page, search, err := getProjectParams(req)
+
+			assert.Equal(t, tt.expected.limit, limit)
+			assert.Equal(t, tt.expected.page, page)
+			assert.Equal(t, tt.expected.search, search)
+			assert.Equal(t, tt.expected.err, err)
+		})
+	}
 }
