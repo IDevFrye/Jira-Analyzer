@@ -248,7 +248,7 @@ func (con *JiraConnector) retryRequest(method, url string) (*http.Response, erro
 	for {
 		resp, err = con.client.Do(req)
 
-		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
+		if resp == nil || resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
 			ansErr := fmt.Errorf("%w", handlerErr.ErrNoProject)
 			con.log.Error(ansErr.Error(), "method", method, "url", url)
 			return nil, handlerErr.ErrNoProject
