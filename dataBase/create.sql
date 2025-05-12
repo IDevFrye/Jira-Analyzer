@@ -1,5 +1,3 @@
-CREATE DATABASE testdb;
-
 CREATE TABLE Projects (
     id serial PRIMARY KEY, 
     title TEXT UNIQUE

@@ -2,11 +2,12 @@ package jiraservice
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 
-	configreader "github.com/jiraconnector/internal/configReader"
 	datatransformer "github.com/jiraconnector/internal/dataTransformer"
 	"github.com/jiraconnector/internal/structures"
+	"github.com/jiraconnector/pkg/config"
+	"github.com/jiraconnector/pkg/logger"
 )
 
 //go:generate mockery
@@ -38,45 +39,54 @@ type JiraService struct {
 	jiraConnector   JiraConnectorInterface
 	dataTransformer DataTransformerInterface
 	dbPusher        DbPusherInterface
+	log             *slog.Logger
 }
 
 func NewJiraService(
-	config *configreader.Config,
+	config *config.Config,
 	jiraConnector JiraConnectorInterface,
 	dataTransformer DataTransformerInterface,
-	dbPusher DbPusherInterface) (*JiraService, error) {
+	dbPusher DbPusherInterface,
+	log *slog.Logger) (*JiraService, error) {
 	return &JiraService{
 		jiraConnector:   jiraConnector,
 		dataTransformer: dataTransformer,
 		dbPusher:        dbPusher,
+		log:             log,
 	}, nil
 }
 
-func (js JiraService) GetProjectsPage(search string, limit, page int) (*structures.ResponseProject, error) {
+func (js *JiraService) GetProjectsPage(search string, limit, page int) (*structures.ResponseProject, error) {
+	js.log.Info("get project page", "page", page, "search", search, "limit", limit)
 	return js.jiraConnector.GetProjectsPage(search, limit, page)
 }
-func (js JiraService) UpdateProjects(projectId string) ([]structures.JiraIssue, error) {
+func (js *JiraService) UpdateProjects(projectId string) ([]structures.JiraIssue, error) {
+	js.log.Info("upd project page", "projectId", projectId)
 	return js.jiraConnector.GetProjectIssues(projectId)
 }
 
-func (js JiraService) PushDataToDb(project string, issues []structures.JiraIssue) error {
+func (js *JiraService) PushDataToDb(project string, issues []structures.JiraIssue) error {
 	data := js.TransformDataToDb(project, issues)
 
 	if err := js.dbPusher.PushIssues(project, data); err != nil {
-		log.Println(err)
+		js.log.Error("error push issues", logger.Err(err))
 		return fmt.Errorf("%w", err)
 	}
+
+	js.log.Info("push data to db", "project", project)
 
 	return nil
 
 }
 
-func (js JiraService) TransformDataToDb(project string, issues []structures.JiraIssue) []datatransformer.DataTransformer {
+func (js *JiraService) TransformDataToDb(project string, issues []structures.JiraIssue) []datatransformer.DataTransformer {
 	var issuesDb []datatransformer.DataTransformer
 
 	for _, issue := range issues {
 		issuesDb = append(issuesDb, *js.dataTransformer.TransformToDbIssueSet(project, issue))
 	}
+
+	js.log.Info("transform data for db", "project", project)
 
 	return issuesDb
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -12,15 +13,15 @@ import (
 	"time"
 
 	handlerErr "github.com/jiraconnector/internal/apiJiraConnector/jiraHandlers/errors"
-	configreader "github.com/jiraconnector/internal/configReader"
 	myErr "github.com/jiraconnector/internal/connector/errors"
 	"github.com/jiraconnector/internal/structures"
+	"github.com/jiraconnector/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
 func mockConnectorWithURL(url string) *JiraConnector {
-	cfg := configreader.Config{
-		JiraCfg: configreader.JiraConfig{
+	cfg := config.Config{
+		JiraCfg: config.JiraConfig{
 			Url:           url,
 			MinSleep:      int(10 * time.Millisecond),
 			MaxSleep:      int(100 * time.Millisecond),
@@ -28,7 +29,7 @@ func mockConnectorWithURL(url string) *JiraConnector {
 			IssueInOneReq: 1,
 		},
 	}
-	return NewJiraConnector(cfg)
+	return NewJiraConnector(&cfg, slog.Default())
 }
 
 func TestGetAllProjects(t *testing.T) {

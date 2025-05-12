@@ -3,6 +3,7 @@ package dbpusher
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"testing"
 	"time"
@@ -19,7 +20,7 @@ func TestPushProject(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 
-	dbp := &DbPusher{db: db}
+	dbp := &DbPusher{db: db, log: slog.Default()}
 
 	tests := []struct {
 		name       string
@@ -162,7 +163,7 @@ func TestPushProjects(t *testing.T) {
 				tt.mockSetup(&mock)
 			}
 
-			dbp := &DbPusher{db: db}
+			dbp := &DbPusher{db: db, log: slog.Default()}
 
 			err = dbp.PushProjects(tt.projects)
 
@@ -189,7 +190,7 @@ func TestPushAuthor(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 
-	dbp := &DbPusher{db: db}
+	dbp := &DbPusher{db: db, log: slog.Default()}
 
 	tests := []struct {
 		name       string
@@ -242,7 +243,7 @@ func TestHasStatusChange(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 
-	dbp := &DbPusher{db: db}
+	dbp := &DbPusher{db: db, log: slog.Default()}
 
 	timeVal := time.Now()
 
@@ -303,7 +304,7 @@ func TestPushStatusChanges(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 
-	dbp := &DbPusher{db: db}
+	dbp := &DbPusher{db: db, log: slog.Default()}
 
 	issueID := 123
 	authorName := "John Doe"
@@ -525,7 +526,7 @@ func TestPushIssue(t *testing.T) {
 				tt.mockSetup(&mock)
 			}
 
-			dbp := &DbPusher{db: db}
+			dbp := &DbPusher{db: db, log: slog.Default()}
 			id, err := dbp.PushIssue(tt.project, tt.issue)
 
 			if tt.expectedError != nil {
@@ -786,7 +787,7 @@ func TestPushIssues(t *testing.T) {
 				tt.mockSetup(&mock)
 			}
 
-			dbp := &DbPusher{db: db}
+			dbp := &DbPusher{db: db, log: slog.Default()}
 			err = dbp.PushIssues(tt.project, tt.issues)
 
 			if tt.expectedError != nil {

@@ -1,0 +1,50 @@
+time=2025-05-12T21:20:01.762+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/cmd/service/main.go:17 msg="starting url-shortener" env=local
+time=2025-05-12T21:20:01.762+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/cmd/app/app.go:26 msg="created jira connection"
+time=2025-05-12T21:20:01.762+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/cmd/app/app.go:41 msg="created jira service"
+time=2025-05-12T21:20:01.762+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/apiJiraConnector/jiraHandlers/jiraHandlers.go:40 msg="create router"
+time=2025-05-12T21:20:01.762+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/cmd/app/app.go:45 msg="created jira handlers"
+time=2025-05-12T21:20:01.762+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/cmd/app/app.go:51 msg="create jira server"
+time=2025-05-12T21:20:01.762+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/cmd/service/main.go:25 msg="created app"
+time=2025-05-12T21:20:01.762+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/cmd/app/app.go:62 msg="run app"
+time=2025-05-12T21:20:53.331+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/pkg/middleware/logger.go:42 msg="logger middleware enabled" component=middleware/logger
+time=2025-05-12T21:20:53.332+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/apiJiraConnector/jiraService/jiraService.go:60 msg="get project page" page=1 search="" limit=20
+time=2025-05-12T21:20:55.403+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/connector/connector.go:60 msg="success get all projects from" url=https://issues.apache.org/jira/rest/api/2/project
+time=2025-05-12T21:20:55.403+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/connector/connector.go:90 msg="success get projects with params" search="" page=1 limit=20
+time=2025-05-12T21:20:55.403+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/apiJiraConnector/jiraHandlers/jiraHandlers.go:67 msg="Got project page: %d" page=1
+time=2025-05-12T21:20:55.403+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/pkg/middleware/logger.go:71 msg="request completed" component=middleware/logger method=GET path=/projects remote_addr=[::1]:56940 user_agent=PostmanRuntime/7.43.4 status=200 bytes=2525 duration=2.071976797s
+time=2025-05-12T21:21:18.682+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/pkg/middleware/logger.go:42 msg="logger middleware enabled" component=middleware/logger
+time=2025-05-12T21:21:18.682+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/apiJiraConnector/jiraService/jiraService.go:64 msg="upd project page" projectId=AAR
+time=2025-05-12T21:21:18.887+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/connector/connector.go:229 msg="success got all issues" project=AAR
+time=2025-05-12T21:21:19.013+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/connector/connector.go:201 msg="success get issue for thread" project=AAR startAt=1
+time=2025-05-12T21:21:19.013+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/connector/connector.go:171 msg="success got all issues" project=AAR
+time=2025-05-12T21:21:19.013+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/apiJiraConnector/jiraService/jiraService.go:89 msg="transform data for db" project=AAR
+time=2025-05-12T21:21:19.051+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:254 msg="success ge priject ID" project=AAR
+time=2025-05-12T21:21:19.056+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:235 msg="success get author\assignee id" "author\assignee"=altabunny
+time=2025-05-12T21:21:19.056+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:235 msg="success get author\assignee id" "author\assignee"=altabunny
+time=2025-05-12T21:21:19.060+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:181 msg="success push issue" project=AAR
+time=2025-05-12T21:21:19.060+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:119 msg="success push status changes"
+time=2025-05-12T21:21:19.060+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:254 msg="success ge priject ID" project=AAR
+time=2025-05-12T21:21:19.061+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:235 msg="success get author\assignee id" "author\assignee"=fransb
+time=2025-05-12T21:21:19.061+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:235 msg="success get author\assignee id" "author\assignee"=fransb
+time=2025-05-12T21:21:19.062+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:181 msg="success push issue" project=AAR
+time=2025-05-12T21:21:19.064+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:266 msg="success check has status change"
+time=2025-05-12T21:21:19.064+03:00 level=ERROR source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:105 msg="already has such status change"
+time=2025-05-12T21:21:19.064+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:254 msg="success ge priject ID" project=AAR
+time=2025-05-12T21:21:19.065+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:235 msg="success get author\assignee id" "author\assignee"=engrzaid
+time=2025-05-12T21:21:19.065+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:235 msg="success get author\assignee id" "author\assignee"=engrzaid
+time=2025-05-12T21:21:19.066+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:181 msg="success push issue" project=AAR
+time=2025-05-12T21:21:19.066+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:119 msg="success push status changes"
+time=2025-05-12T21:21:19.066+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:254 msg="success ge priject ID" project=AAR
+time=2025-05-12T21:21:19.066+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:235 msg="success get author\assignee id" "author\assignee"=jklaw90
+time=2025-05-12T21:21:19.066+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:235 msg="success get author\assignee id" "author\assignee"=jklaw90
+time=2025-05-12T21:21:19.067+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:181 msg="success push issue" project=AAR
+time=2025-05-12T21:21:19.067+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:266 msg="success check has status change"
+time=2025-05-12T21:21:19.067+03:00 level=ERROR source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:105 msg="already has such status change"
+time=2025-05-12T21:21:19.067+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:254 msg="success ge priject ID" project=AAR
+time=2025-05-12T21:21:19.067+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:235 msg="success get author\assignee id" "author\assignee"=altabunny
+time=2025-05-12T21:21:19.067+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:235 msg="success get author\assignee id" "author\assignee"=altabunny
+time=2025-05-12T21:21:19.068+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:181 msg="success push issue" project=AAR
+time=2025-05-12T21:21:19.068+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/dbPusher/dbPusher.go:119 msg="success push status changes"
+time=2025-05-12T21:21:19.068+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/apiJiraConnector/jiraService/jiraService.go:76 msg="push data to db" project=AAR
+time=2025-05-12T21:21:19.068+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/internal/apiJiraConnector/jiraHandlers/jiraHandlers.go:106 msg="Update issues"
+time=2025-05-12T21:21:19.068+03:00 level=INFO source=/home/elina/Desktop/golangPrj/kpo/Jira-Analyzer/jiraConnector/pkg/middleware/logger.go:71 msg="request completed" component=middleware/logger method=POST path=/updateProject remote_addr=[::1]:56940 user_agent=PostmanRuntime/7.43.4 status=200 bytes=18 duration=385.685271ms

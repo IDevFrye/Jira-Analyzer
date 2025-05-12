@@ -2,6 +2,7 @@ package jirahandlers
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -98,7 +99,7 @@ func TestHandler_Projects(t *testing.T) {
 			mockService.On("GetProjectsPage", search, limit, page).Return(tt.mockReturn, tt.mockError)
 
 			router := mux.NewRouter()
-			_ = NewHandler(mockService, router)
+			_ = NewHandler(mockService, router, slog.Default())
 
 			req, err := http.NewRequest("GET", "/projects", nil)
 			assert.NoError(t, err)
@@ -196,7 +197,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 
 			// Создаем router и хендлер
 			router := mux.NewRouter()
-			_ = NewHandler(mockService, router)
+			_ = NewHandler(mockService, router, slog.Default())
 
 			// Создаем запрос с query параметром
 			req, err := http.NewRequest("POST", "/updateProject", nil)

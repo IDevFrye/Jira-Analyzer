@@ -2,6 +2,7 @@ package jiraservice
 
 import (
 	"errors"
+	"log/slog"
 	"testing"
 
 	datatransformer "github.com/jiraconnector/internal/dataTransformer"
@@ -20,6 +21,7 @@ func TestNewJiraService(t *testing.T) {
 		mockJiraConn,
 		mockTransformer,
 		mockDbPusher,
+		slog.Default(),
 	)
 
 	assert.NoError(t, err)
@@ -63,6 +65,7 @@ func TestGetProjectsPage(t *testing.T) {
 
 			service := JiraService{
 				jiraConnector: mockJiraConn,
+				log:           slog.Default(),
 			}
 
 			result, err := service.GetProjectsPage(tt.search, tt.limit, tt.page)
@@ -110,6 +113,7 @@ func TestUpdateProjects(t *testing.T) {
 
 			service := JiraService{
 				jiraConnector: mockJiraConn,
+				log:           slog.Default(),
 			}
 
 			result, err := service.UpdateProjects(tt.projectId)
@@ -177,6 +181,7 @@ func TestPushDataToDb(t *testing.T) {
 			service := JiraService{
 				dataTransformer: mockTransformer,
 				dbPusher:        mockDbPusher,
+				log:             slog.Default(),
 			}
 
 			err := service.PushDataToDb(tt.project, tt.issues)
@@ -242,6 +247,7 @@ func TestTransformDataToDb(t *testing.T) {
 
 			service := JiraService{
 				dataTransformer: mockTransformer,
+				log:             slog.Default(),
 			}
 
 			result := service.TransformDataToDb(tt.project, tt.issues)

@@ -1,45 +1,32 @@
 package main
 
 import (
-	"log"
-	"os"
+	"log/slog"
 
 	"github.com/jiraconnector/cmd/app"
-	config "github.com/jiraconnector/internal/configReader"
+	"github.com/jiraconnector/pkg/config"
+	"github.com/jiraconnector/pkg/logger"
 )
 
 func main() {
-	//Open config
-	cfgPath := "../../configs/config.yml" // dev
-	configFile, err := os.Open(cfgPath)
-	if err != nil {
-		log.Println("error open config")
-		panic(err)
-	}
-	log.Println("open config")
-
-	//load data from config
-	cfg, err := config.LoadConfig(configFile)
-	if err != nil {
-		log.Println("error load config")
-		panic(err)
-	}
-	log.Println("load config")
+	//read config
+	cfg := config.LoadConfig()
 
 	//setting logger
-	log.Printf("set logger") //TEMP
+	log := logger.SetupLogger(cfg.Env, cfg.LogFile)
+	log.Info("starting url-shortener", slog.String("env", cfg.Env))
 
 	//create connector app
-	a, err := app.NewApp(cfg)
+	a, err := app.NewApp(cfg, log)
 	if err != nil {
-		log.Println("error create app")
+		log.Error("error create app")
 		panic(err)
 	}
-	log.Println("created app")
+	log.Info("created app")
 
 	//start app
 	if err := a.Run(); err != nil {
-		log.Println("error run app")
+		log.Error("error run app")
 		panic(err)
 	}
 	defer a.Close()

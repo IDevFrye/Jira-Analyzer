@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"math"
 	"net/http"
 	"strings"
@@ -13,20 +13,23 @@ import (
 	"time"
 
 	handlerErr "github.com/jiraconnector/internal/apiJiraConnector/jiraHandlers/errors"
-	configreader "github.com/jiraconnector/internal/configReader"
 	myErr "github.com/jiraconnector/internal/connector/errors"
 	"github.com/jiraconnector/internal/structures"
+	"github.com/jiraconnector/pkg/config"
+	"github.com/jiraconnector/pkg/logger"
 )
 
 type JiraConnector struct {
-	cfg    *configreader.JiraConfig
+	cfg    *config.JiraConfig
 	client *http.Client
+	log    *slog.Logger
 }
 
-func NewJiraConnector(config configreader.Config) *JiraConnector {
+func NewJiraConnector(config *config.Config, log *slog.Logger) *JiraConnector {
 	return &JiraConnector{
 		cfg:    &config.JiraCfg,
 		client: &http.Client{},
+		log:    log,
 	}
 }
 
@@ -35,33 +38,34 @@ func (con *JiraConnector) GetAllProjects() ([]structures.JiraProject, error) {
 
 	resp, err := con.retryRequest("GET", url)
 	if err != nil {
-		log.Println(err)
+		con.log.Error("err retry request", logger.Err(err), "url", url)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		ansErr := fmt.Errorf("%w :: %w", myErr.ErrReadResponseBody, err)
-		log.Println(ansErr)
+		ansErr := fmt.Errorf("%w: %w", myErr.ErrReadResponseBody, err)
+		con.log.Error(ansErr.Error(), "url", url)
 		return nil, ansErr
 	}
 
 	var projects []structures.JiraProject
 	if err = json.Unmarshal(body, &projects); err != nil {
-		ansErr := fmt.Errorf("%w :: %w", myErr.ErrUnmarshalAns, err)
-		log.Println(ansErr)
+		ansErr := fmt.Errorf("%w: %w", myErr.ErrUnmarshalAns, err)
+		con.log.Error(ansErr.Error(), "url", url)
 		return nil, ansErr
 	}
 
+	con.log.Info("success get all projects from", "url", url)
 	return projects, nil
 }
 
 func (con *JiraConnector) GetProjectsPage(search string, limit, page int) (*structures.ResponseProject, error) {
 	allProjects, err := con.GetAllProjects()
 	if err != nil {
-		ansErr := fmt.Errorf("%w :: %w", myErr.ErrGetProjects, err)
-		log.Println(ansErr)
+		ansErr := fmt.Errorf("%w: %w", myErr.ErrGetProjects, err)
+		con.log.Error(ansErr.Error(), "search", search, "page", page, "limit", limit)
 		return nil, ansErr
 	}
 
@@ -75,12 +79,15 @@ func (con *JiraConnector) GetProjectsPage(search string, limit, page int) (*stru
 	totalProjects := len(pageProjects)
 	start := (page - 1) * limit
 	if start >= totalProjects {
+		con.log.Info("success get projects with params", "search", search, "page", page, "limit", limit)
 		return &structures.ResponseProject{}, nil
 	}
 	end := start + limit
 	if end > totalProjects {
 		end = totalProjects
 	}
+
+	con.log.Info("success get projects with params", "search", search, "page", page, "limit", limit)
 
 	return &structures.ResponseProject{
 			Projects: pageProjects[start:end],
@@ -97,12 +104,13 @@ func (con *JiraConnector) GetProjectIssues(project string) ([]structures.JiraIss
 	//get all issues for this project
 	totalIssues, err := con.getTotalIssues(project)
 	if err != nil {
-		ansErr := fmt.Errorf("%w :: %w", myErr.ErrGetIssues, err)
-		log.Println(ansErr)
+		ansErr := fmt.Errorf("%w: %w", myErr.ErrGetIssues, err)
+		con.log.Error(ansErr.Error(), "project", project)
 		return nil, ansErr
 	}
 
 	if totalIssues == 0 {
+		con.log.Info("success got all issues", "project", project)
 		return []structures.JiraIssue{}, nil
 	}
 
@@ -132,14 +140,14 @@ func (con *JiraConnector) GetProjectIssues(project string) ([]structures.JiraIss
 			//TODO: add count of request (?)
 			select {
 			case <-ctx.Done():
-				log.Println("stop go thread")
+				con.log.Error("stop go thread", "project", project)
 				return
 			default:
 				issues, err := con.getIssuesForOneThread(issueStart, project)
 				if err != nil {
-					ansErr := fmt.Errorf("%w :: %w", myErr.ErrGetIssues, err)
+					ansErr := fmt.Errorf("%w: %w", myErr.ErrGetIssues, err)
 					errChan <- ansErr
-					log.Println(ansErr)
+					con.log.Error(ansErr.Error(), "project", project)
 					return
 				}
 
@@ -153,14 +161,14 @@ func (con *JiraConnector) GetProjectIssues(project string) ([]structures.JiraIss
 
 	go func() {
 		if err := <-errChan; err != nil {
-			log.Println(err)
+			con.log.Error("err chan", logger.Err(err), "project", project)
 			cancel()
 		}
 	}()
 
 	wg.Wait()
 
-	log.Println("Got all issues")
+	con.log.Info("success got all issues", "project", project)
 	return allIssues, nil
 }
 
@@ -171,25 +179,26 @@ func (con *JiraConnector) getIssuesForOneThread(startAt int, project string) ([]
 
 	resp, err := con.retryRequest("GET", url)
 	if err != nil {
-		log.Println(err)
+		con.log.Error("error retry request", logger.Err(err), "project", project, "startAt", startAt)
 		return nil, myErr.ErrGetIssues
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		ansErr := fmt.Errorf("%w :: %w", myErr.ErrReadResponseBody, err)
-		log.Println(ansErr)
+		ansErr := fmt.Errorf("%w: %w", myErr.ErrReadResponseBody, err)
+		con.log.Error(ansErr.Error(), "project", project, "startAt", startAt)
 		return nil, ansErr
 	}
 
 	var issues structures.JiraIssues
 	if err := json.Unmarshal(body, &issues); err != nil {
-		ansErr := fmt.Errorf("%w :: %w", myErr.ErrUnmarshalAns, err)
-		log.Println(ansErr)
+		ansErr := fmt.Errorf("%w: %w", myErr.ErrUnmarshalAns, err)
+		con.log.Error(ansErr.Error(), "project", project, "startAt", startAt)
 		return nil, ansErr
 	}
 
+	con.log.Info("success get issue for thread", "project", project, "startAt", startAt)
 	return issues.Issues, nil
 }
 
@@ -198,25 +207,26 @@ func (con *JiraConnector) getTotalIssues(project string) (int, error) {
 
 	resp, err := con.retryRequest("GET", url)
 	if err != nil {
-		log.Println(err)
+		con.log.Error("error retry request", logger.Err(err), "project", project)
 		return 0, myErr.ErrGetIssues
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		ansErr := fmt.Errorf("%w :: %w", myErr.ErrReadResponseBody, err)
-		log.Println(ansErr)
+		ansErr := fmt.Errorf("%w: %w", myErr.ErrReadResponseBody, err)
+		con.log.Error(ansErr.Error(), "project", project)
 		return 0, ansErr
 	}
 
 	var issues structures.JiraIssues
 	if err := json.Unmarshal(body, &issues); err != nil {
-		ansErr := fmt.Errorf("%w :: %w", myErr.ErrUnmarshalAns, err)
-		log.Println(ansErr)
+		ansErr := fmt.Errorf("%w: %w", myErr.ErrUnmarshalAns, err)
+		con.log.Error(ansErr.Error(), "project", project)
 		return 0, ansErr
 	}
 
+	con.log.Info("success got all issues", "project", project)
 	return issues.Total, nil
 }
 
@@ -230,13 +240,17 @@ func (con *JiraConnector) retryRequest(method, url string) (*http.Response, erro
 
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("%w :: %w", myErr.ErrMakeRequest, err)
+		ansErr := fmt.Errorf("%w: %w", myErr.ErrMakeRequest, err)
+		con.log.Error(ansErr.Error(), "method", method, "url", url)
+		return nil, ansErr
 	}
 
 	for {
 		resp, err = con.client.Do(req)
 
 		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
+			ansErr := fmt.Errorf("%w", handlerErr.ErrNoProject)
+			con.log.Error(ansErr.Error(), "method", method, "url", url)
 			return nil, handlerErr.ErrNoProject
 		}
 

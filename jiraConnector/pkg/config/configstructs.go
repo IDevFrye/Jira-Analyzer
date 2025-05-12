@@ -1,4 +1,4 @@
-package configreader
+package config
 
 type DBConfig struct {
 	Host     string `yaml:"host"`
@@ -21,6 +21,8 @@ type ServerConfig struct {
 }
 
 type Config struct {
+	Env       string       `yaml:"env"`
+	LogFile   string       `yaml:"log_file"`
 	DBCfg     DBConfig     `yaml:"database"`
 	JiraCfg   JiraConfig   `yaml:"jira-connector"`
 	ServerCfg ServerConfig `yaml:"server"`
