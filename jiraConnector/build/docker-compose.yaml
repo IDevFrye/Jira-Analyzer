@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: testDB
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: pgpwd
+    ports:
+      - "15432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./initDB:/docker-entrypoint-initdb.d
+
+    networks:
+      - jiraApp
+
+  jiraconnector:
+    build:
+      context: ../
+      dockerfile: ./cmd/Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      CONFIG_PATH: ./configs/config.yml
+    ports:
+      - "8086:8086"
+    
+    networks:
+      - jiraApp
+
+networks:
+  jiraApp:
+    driver: bridge
+
+volumes:
+  pgdata:

@@ -17,20 +17,56 @@ jira-connector:
   min_sleep: 50
 
 server:
-  port: ":8080"
+  port: ":8086"
+
+log_file: "jiraconnector.log"
+env: "local"
 ```
 
-## Запуск сервера jiraConnector
+## Перед запуском
 
-0. Убедитесь в существовании базы данных
-1. Настройте перемнную окружения CONFIG_PATH (путь к вашему файлу конфигурации)
-2. Для запуска сервиса выполните команду из ./cmd/service
+1. Убедитесь, что у вас установлен **Docker** и **Docker Compose**
+2. Убедитсь, что у вас установлен Task [опционально] - для лёгкого старта приложения
+3. Убедитесь, что добавили файл конфигурации по пути ./configs/сonfig.yaml
+4. Клонируйте репозиторий и перейдите в папку микросервиса проекта.
+
+```bash
+git clone https://github.com/IDevFrye/Jira-Analyzer.git
+cd Jira-Analyzer/jiraConnector
+```
+
+## Автоматическая сборка и запуск сервера
+
+> самый простой способ для любой платформы
+> убедитесь, что установлен [Task](https://taskfile.dev/#/installation)
+
+```bash
+# Собрать образы
+task build
+
+# Запустить проект
+task up
+
+# Остановить
+task down
+
+#Посмотреть все доступные команды task
+task --list
+```
+
+## Ручной запуск сервера jiraConnector
+
+1. Убедитесь в существовании базы данных
+2. Настройте перемнную окружения CONFIG_PATH (путь к вашему файлу конфигурации)
+3. Для запуска сервиса выполните команду из ./cmd/service
 ```bash
 go run main.go
 ```
-3. Через браузер\curl\postman проверьте работу выполнив один из доступных запросов
+4. Через браузер\curl\postman проверьте работу выполнив один из доступных запросов
 
 ## Запросы
+Подробные эндпоинты с описание параметров, тел запросов и ответов можно найти в папке ./docs
+
 1. /api/v1/connector/projects - для получения проектов, доступных для загрузки.
 Доступны параметры:
 - limit: [int] - количество проектов на одной странице (limit > 0)
@@ -39,14 +75,14 @@ go run main.go
 
 Возвращает JSON, содержащий массив Projects (проекты на странице под номером page) и структуру PageInfo, которая содержит поле PageCount - общее количество страниц при данном параметре limit и search, CurrentPage - номер текущей страницы, ProjectsCount - общее количество проектов при данном параметре search. Значение limit по умолчанию = 20, значение page по умолчанию = 1
 
-2. api/v1/connector/updateProject?project=projectKey - Получает (или обновляет) все issues из проекта с ключом 'projectKey' и заносит в базу данных. Что будет происходить - загрузка или
+2. /api/v1/connector/updateProject?project=projectKey - Получает (или обновляет) все issues из проекта с ключом 'projectKey' и заносит в базу данных. Что будет происходить - загрузка или
 обновление - зависит от того, был ли проект сохранен локально ранее.
 
-База данных обновляется только при запросе на update.
+*База данных обновляется только при запросе на update.
 
 ## Примеры запросов:
-*у порт указан для примера, необходимо использовать тот, что вы указали в конфигурации приложения*
-- GET http://localhost:8080/api/v1/connector/projects
+
+- GET http://localhost:8086/api/v1/connector/projects
 ```json
 {
   "projects": [
@@ -178,7 +214,7 @@ go run main.go
   }
 }
 ```
-- GET http://localhost:8080/api/v1/connector/projects?limit=5&page=2&search=a
+- GET http://localhost:8086/api/v1/connector/projects?limit=5&page=2&search=a
 ```json
 {
   "projects": [
@@ -220,7 +256,10 @@ go run main.go
   }
 }
 ```
-- POST http://localhost:8080/api/v1/connectorupdateProject?project=AAR
+- POST http://localhost:8086/api/v1/connectorupdateProject?project=AAR
 ```json
-{"AAR":"updated"}
+{
+  "project": "AAR",
+  "status": "updated"
+}
 ```
