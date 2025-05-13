@@ -101,7 +101,7 @@ func TestHandler_Projects(t *testing.T) {
 			router := mux.NewRouter()
 			_ = NewHandler(mockService, router, slog.Default())
 
-			req, err := http.NewRequest("GET", "/projects", nil)
+			req, err := http.NewRequest("GET", "/api/v1/connector/projects", nil)
 			assert.NoError(t, err)
 
 			q := req.URL.Query()
@@ -135,7 +135,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 	}{
 		{
 			name:           "successful update",
-			queryParam:     "TESTPROJ",
+			queryParam:     "AAR",
 			mockIssues:     []structures.JiraIssue{},
 			mockError:      nil,
 			pushError:      nil,
@@ -182,25 +182,20 @@ func TestHandler_UpdateProject(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Создаем mock сервиса
 			mockService := new(MockJiraServiceInterface)
 
-			// Настраиваем mock только если есть project параметр
 			if tt.queryParam != "" {
 				mockService.On("UpdateProjects", tt.queryParam).Return(tt.mockIssues, tt.mockError)
 
-				// Если нет ошибки обновления, ожидаем вызов PushDataToDb
 				if tt.mockError == nil {
 					mockService.On("PushDataToDb", tt.queryParam, tt.mockIssues).Return(tt.pushError)
 				}
 			}
 
-			// Создаем router и хендлер
 			router := mux.NewRouter()
 			_ = NewHandler(mockService, router, slog.Default())
 
-			// Создаем запрос с query параметром
-			req, err := http.NewRequest("POST", "/updateProject", nil)
+			req, err := http.NewRequest("POST", "/api/v1/connector/updateProject", nil)
 			assert.NoError(t, err)
 
 			q := req.URL.Query()
@@ -209,16 +204,12 @@ func TestHandler_UpdateProject(t *testing.T) {
 			}
 			req.URL.RawQuery = q.Encode()
 
-			// Создаем ResponseRecorder для записи ответа
 			rr := httptest.NewRecorder()
 
-			// Выполняем запрос
 			router.ServeHTTP(rr, req)
 
-			// Проверяем статус код
 			assert.Equal(t, tt.expectedStatus, rr.Code)
 
-			// Проверяем вызовы mock
 			mockService.AssertExpectations(t)
 		})
 	}
@@ -227,7 +218,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 func TestGetProjectParams(t *testing.T) {
 	tests := []struct {
 		name        string
-		queryParams map[string][]string // Изменено на []string
+		queryParams map[string][]string
 		expected    struct {
 			limit  int
 			page   int
@@ -341,7 +332,6 @@ func TestGetProjectParams(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Создаем запрос с query параметрами
 			req := &http.Request{
 				URL: &url.URL{
 					RawQuery: url.Values(tt.queryParams).Encode(),

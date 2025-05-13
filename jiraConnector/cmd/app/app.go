@@ -12,6 +12,7 @@ import (
 	datatransformer "github.com/jiraconnector/internal/dataTransformer"
 	dbpusher "github.com/jiraconnector/internal/dbPusher"
 	"github.com/jiraconnector/pkg/config"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type JiraApp struct {
@@ -41,6 +42,7 @@ func NewApp(cfg *config.Config, log *slog.Logger) (*JiraApp, error) {
 	log.Info("created jira service")
 
 	router := mux.NewRouter()
+	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 	jiraHandler := jirahandlers.NewHandler(service, router, log)
 	log.Info("created jira handlers")
 

@@ -10,3 +10,8 @@ type PageInfo struct {
 	CurrentPage   int `json:"currentPage"`
 	ProjectsCount int `json:"projectsCount"`
 }
+
+type ResponseUpdate struct {
+	Project string `json:"project"`
+	Status  string `json:"status"`
+}

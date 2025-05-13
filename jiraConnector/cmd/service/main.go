@@ -8,6 +8,12 @@ import (
 	"github.com/jiraconnector/pkg/logger"
 )
 
+// @title Jira Connector API
+// @version 1.0
+// @description REST API для взаимодействия с Jira и выгрузки проектов.
+
+// @host localhost:8080
+// @BasePath /api/v1/connector
 func main() {
 	//read config
 	cfg := config.LoadConfig()

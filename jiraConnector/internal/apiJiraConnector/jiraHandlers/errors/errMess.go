@@ -4,7 +4,7 @@ import "errors"
 
 var (
 	ErrParamLimitPage = errors.New("incorrect limit or page param - need integer > 0")
-	ErrParamProject   = errors.New("we don't have project with such name")
+	ErrParamProject   = errors.New("incorrect project name param")
 
 	ErrUpdProject  = errors.New("something went wrong and i can't update project")
 	ErrPushProject = errors.New("something went wrong and i can't save issues")
