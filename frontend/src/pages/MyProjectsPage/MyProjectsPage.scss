@@ -1,0 +1,175 @@
+@use '../../styles/variables' as v;
+
+.my-projects {
+  padding: v.$spacing-xl;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  &-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: v.$spacing-xl;
+    flex-wrap: wrap;
+    gap: v.$spacing-md;
+  }
+
+  &-title {
+    font-size: 2rem;
+    color: v.$text-primary;
+    margin: 0;
+    font-weight: 700;
+  }
+
+  &-search {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid v.$border-color;
+    border-radius: 50px;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+    width: 300px;
+    max-width: 100%;
+
+    &:focus {
+      border-color: v.$primary-color;
+      box-shadow: 0 0 0 3px rgba(v.$primary-color, 0.2);
+    }
+  }
+
+  &-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: v.$spacing-xl;
+    color: v.$text-secondary;
+    
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(v.$primary-color, 0.2);
+      border-radius: 50%;
+      border-top-color: v.$primary-color;
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: v.$spacing-md;
+    }
+  }
+
+  &-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: v.$spacing-xl;
+    text-align: center;
+    color: v.$text-secondary;
+
+    img {
+      width: 200px;
+      height: 200px;
+      margin-bottom: v.$spacing-lg;
+      opacity: 0.7;
+    }
+
+    p {
+      font-size: 1.2rem;
+      margin-bottom: v.$spacing-lg;
+    }
+
+    .clear-search {
+      background-color: v.$primary-color;
+      color: white;
+      border: none;
+      padding: v.$spacing-sm v.$spacing-md;
+      border-radius: v.$rounded-md;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: darken(v.$primary-color, 10%);
+      }
+    }
+  }
+}
+
+.stats-cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: v.$spacing-lg;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.my-projects-search {
+  transition: all 0.3s ease;
+  
+  &:focus {
+    border-color: v.$primary-color;
+    box-shadow: 0 0 0 3px rgba(v.$primary-color, 0.2);
+    width: 350px; // Увеличиваем при фокусе
+  }
+}
+
+.clear-search {
+  background-color: v.$primary-color;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: v.$rounded-md;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+
+  &:hover {
+    background-color: darken(v.$primary-color, 10%);
+    transform: translateY(-1px);
+  }
+}
+
+.my-projects-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: v.$spacing-xl;
+  text-align: center;
+  color: v.$text-secondary;
+  min-height: 300px;
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: v.$spacing-lg;
+    opacity: 0.5;
+  }
+
+  .folder-icon {
+    color: v.$primary-color;
+  }
+
+  .search-icon {
+    color: v.$text-secondary;
+  }
+
+  p {
+    font-size: 1.2rem;
+    margin-bottom: v.$spacing-lg;
+    max-width: 400px;
+    line-height: 1.5;
+  }
+}
+
+.empty-icon {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 0.5; transform: translateY(0); }
+}
