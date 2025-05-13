@@ -31,7 +31,7 @@ go run main.go
 3. Через браузер\curl\postman проверьте работу выполнив один из доступных запросов
 
 ## Запросы
-1. /projects - для получения проектов, доступных для загрузки.
+1. /api/v1/connector/projects - для получения проектов, доступных для загрузки.
 Доступны параметры:
 - limit: [int] - количество проектов на одной странице (limit > 0)
 - page: [int] - номер страницы, с которой необходимо вернуть проекты (page > 0)
@@ -39,14 +39,14 @@ go run main.go
 
 Возвращает JSON, содержащий массив Projects (проекты на странице под номером page) и структуру PageInfo, которая содержит поле PageCount - общее количество страниц при данном параметре limit и search, CurrentPage - номер текущей страницы, ProjectsCount - общее количество проектов при данном параметре search. Значение limit по умолчанию = 20, значение page по умолчанию = 1
 
-2. /updateProject?project=projectKey - Получает (или обновляет) все issues из проекта с ключом 'projectKey' и заносит в базу данных. Что будет происходить - загрузка или
+2. api/v1/connector/updateProject?project=projectKey - Получает (или обновляет) все issues из проекта с ключом 'projectKey' и заносит в базу данных. Что будет происходить - загрузка или
 обновление - зависит от того, был ли проект сохранен локально ранее.
 
 База данных обновляется только при запросе на update.
 
 ## Примеры запросов:
 *у порт указан для примера, необходимо использовать тот, что вы указали в конфигурации приложения*
-- GET http://localhost:8080/projects
+- GET http://localhost:8080/api/v1/connector/projects
 ```json
 {
   "projects": [
@@ -178,7 +178,7 @@ go run main.go
   }
 }
 ```
-- GET http://localhost:8080/projects?limit=5&page=2&search=a
+- GET http://localhost:8080/api/v1/connector/projects?limit=5&page=2&search=a
 ```json
 {
   "projects": [
@@ -220,7 +220,7 @@ go run main.go
   }
 }
 ```
-- POST http://localhost:8080/updateProject?project=AAR
+- POST http://localhost:8080/api/v1/connectorupdateProject?project=AAR
 ```json
 {"AAR":"updated"}
 ```

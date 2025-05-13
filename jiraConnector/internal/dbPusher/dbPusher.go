@@ -3,7 +3,6 @@ package dbpusher
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"log/slog"
 	"time"
 
@@ -217,7 +216,7 @@ func (dbp *DbPusher) PushIssues(project string, issues []datatransformer.DataTra
 		return ansErr
 	}
 
-	log.Println("success save all issues", "project", project)
+	dbp.log.Info("success save all issues", "project", project)
 	return nil
 }
 

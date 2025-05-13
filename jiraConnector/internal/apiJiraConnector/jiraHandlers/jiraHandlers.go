@@ -35,8 +35,8 @@ func NewHandler(service JiraServiceInterface, router *mux.Router, log *slog.Logg
 
 	router.Use(middleware.NewLoggerMiddleware(log))
 
-	router.HandleFunc("/projects", h.projects).Methods(http.MethodOptions, http.MethodGet)
-	router.HandleFunc("/updateProject", h.updateProject).Methods(http.MethodOptions, http.MethodPost)
+	router.HandleFunc("/api/v1/connector/projects", h.projects).Methods(http.MethodOptions, http.MethodGet)
+	router.HandleFunc("/api/v1/connector/updateProject", h.updateProject).Methods(http.MethodOptions, http.MethodPost)
 	log.Info("create router")
 	return router
 }

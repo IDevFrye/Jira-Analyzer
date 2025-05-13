@@ -104,7 +104,7 @@ func (con *JiraConnector) GetProjectIssues(project string) ([]structures.JiraIss
 	//get all issues for this project
 	totalIssues, err := con.getTotalIssues(project)
 	if err != nil {
-		ansErr := fmt.Errorf("%w: %w", myErr.ErrGetIssues, err)
+		ansErr := fmt.Errorf("%w", err)
 		con.log.Error(ansErr.Error(), "project", project)
 		return nil, ansErr
 	}
@@ -207,8 +207,9 @@ func (con *JiraConnector) getTotalIssues(project string) (int, error) {
 
 	resp, err := con.retryRequest("GET", url)
 	if err != nil {
-		con.log.Error("error retry request", logger.Err(err), "project", project)
-		return 0, myErr.ErrGetIssues
+		ansErr := fmt.Errorf("%w: %w", myErr.ErrGetIssues, err)
+		con.log.Error(ansErr.Error(), "project", project)
+		return 0, ansErr
 	}
 	defer resp.Body.Close()
 

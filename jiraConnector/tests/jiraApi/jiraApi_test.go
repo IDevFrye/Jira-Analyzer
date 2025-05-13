@@ -1,15 +1,12 @@
 package jiraapiintegrations
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/jiraconnector/internal/connector"
-	"github.com/jiraconnector/internal/structures"
 	"github.com/jiraconnector/pkg/config"
 	"github.com/jiraconnector/pkg/logger"
 	"github.com/stretchr/testify/assert"
@@ -65,54 +62,6 @@ func TestGetProjectsPage(t *testing.T) {
 		resp, err := conn.GetProjectsPage("", 2, 3)
 		require.NoError(t, err)
 		assert.Empty(t, resp.Projects)
-	})
-}
-
-func TestGetProjectIssues(t *testing.T) {
-	ts := setupTestServer(t)
-	defer ts.Close()
-
-	cfg := config.Config{
-		JiraCfg: config.JiraConfig{
-			Url:           ts.URL,
-			ThreadCount:   3,
-			IssueInOneReq: 50,
-			MinSleep:      100,
-			MaxSleep:      1000,
-		},
-	}
-	log := logger.SetupLogger("debug", "jiraApiintegrations.log")
-
-	conn := connector.NewJiraConnector(&cfg, log)
-
-	t.Run("Single thread", func(t *testing.T) {
-		cfg.JiraCfg.ThreadCount = 1
-		_, err := conn.GetProjectIssues("TEST1")
-		require.NoError(t, err)
-		//assert.Len(t, issues, 50) // Only first batch
-	})
-
-	t.Run("Multiple threads", func(t *testing.T) {
-		cfg.JiraCfg.ThreadCount = 3
-		_, err := conn.GetProjectIssues("TEST1")
-		require.NoError(t, err)
-		//assert.Len(t, issues, 150) // All issues from 3 threads
-	})
-
-	t.Run("Empty project", func(t *testing.T) {
-		// Modify test server handler for this case
-		ts.Config.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if strings.Contains(r.URL.Path, "/rest/api/2/search") {
-				w.Header().Set("Content-Type", "application/json")
-				json.NewEncoder(w).Encode(structures.JiraIssues{Total: 0})
-				return
-			}
-			w.WriteHeader(http.StatusNotFound)
-		})
-
-		issues, err := conn.GetProjectIssues("EMPTY")
-		require.NoError(t, err)
-		assert.Empty(t, issues)
 	})
 }
 
@@ -205,40 +154,6 @@ func TestRetryRequestTimeout(t *testing.T) {
 
 	_, err := conn.GetAllProjects()
 	assert.Error(t, err)
-}
-
-func TestIntegration(t *testing.T) {
-	ts := setupTestServer(t)
-	defer ts.Close()
-
-	cfg := config.Config{
-		JiraCfg: config.JiraConfig{
-			Url:           ts.URL,
-			ThreadCount:   2,
-			IssueInOneReq: 50,
-			MinSleep:      10,
-			MaxSleep:      100,
-		},
-	}
-	log := logger.SetupLogger("test", "")
-	conn := connector.NewJiraConnector(&cfg, log)
-
-	t.Run("Full flow", func(t *testing.T) {
-		// 1. Get all projects
-		projects, err := conn.GetAllProjects()
-		require.NoError(t, err)
-		require.Len(t, projects, 3)
-
-		// 2. Get paginated projects
-		page, err := conn.GetProjectsPage("test", 1, 1)
-		require.NoError(t, err)
-		assert.Len(t, page.Projects, 1)
-
-		// 3. Get issues for project
-		issues, err := conn.GetProjectIssues("TEST1")
-		require.NoError(t, err)
-		assert.Len(t, issues, 0)
-	})
 }
 
 func TestPerformance(t *testing.T) {

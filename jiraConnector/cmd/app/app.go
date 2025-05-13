@@ -68,3 +68,7 @@ func (a *JiraApp) Close() {
 	a.db.Close()
 	a.server.Close()
 }
+
+func (a *JiraApp) GetDB() *dbpusher.DbPusher {
+	return a.db
+}
