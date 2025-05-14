@@ -82,7 +82,7 @@ go run main.go
 
 ## Примеры запросов:
 
-- GET http://localhost:8086/api/v1/connector/projects
+- GET http://localhost:8080/api/v1/connector/projects
 ```json
 {
   "projects": [
@@ -214,7 +214,7 @@ go run main.go
   }
 }
 ```
-- GET http://localhost:8086/api/v1/connector/projects?limit=5&page=2&search=a
+- GET http://localhost:8080/api/v1/connector/projects?limit=5&page=2&search=a
 ```json
 {
   "projects": [
@@ -256,7 +256,7 @@ go run main.go
   }
 }
 ```
-- POST http://localhost:8086/api/v1/connectorupdateProject?project=AAR
+- POST http://localhost:8080/api/v1/connectorupdateProject?project=AAR
 ```json
 {
   "project": "AAR",
