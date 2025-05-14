@@ -17,7 +17,7 @@ jira-connector:
   min_sleep: 50
 
 server:
-  port: ":8086"
+  port: ":8080"
 
 log_file: "jiraconnector.log"
 env: "local"
