@@ -1,0 +1,4 @@
+configs
+log
+*.out
+tests/stress
