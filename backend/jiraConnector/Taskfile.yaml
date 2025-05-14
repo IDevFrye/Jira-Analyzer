@@ -1,0 +1,58 @@
+version: '3'
+
+tasks:
+  build:
+    desc: Собрать Docker-образы
+    dir: build
+    cmds:
+      - docker compose build
+
+  up:
+    desc: Запустить все сервисы
+    dir: build
+    cmds:
+      - docker compose up -d
+
+  down:
+    desc: Остановить и удалить все сервисы
+    dir: build
+    cmds:
+      - docker compose down
+  
+  remove:
+    desc: Остановить и удалить все сервисы и базу данных
+    dir: build
+    cmds:
+      - docker compose down -v
+
+  restart:
+    desc: Перезапустить сервисы
+    dir: build
+    cmds:
+      - docker compose restart
+
+  logs:
+    desc: Смотреть логи всех сервисов
+    dir: build
+    cmds:
+      - docker compose logs -f
+
+  test:
+    desc: Запуск всех тестов
+    dir: .
+    cmds:
+      - go test ./...
+    
+  unit_test:
+    desc: Запуск unit-тестов
+    dir: .
+    cmds:
+      - go test ./internal/... -v
+      - go test ./pkg/... -v
+
+  integr_test:
+    desc: Запуск интеграционных тестов
+    dir: .
+    cmds:
+      - go test ./tests/...
+
