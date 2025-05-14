@@ -9,12 +9,12 @@
     display: flex;
     flex: 1;
     position: relative;
-    padding-top: v.$spacing-xl; // Отступ от хедера
+    padding-top: v.$spacing-xl;
   }
 
   &-main {
     flex: 1;
     padding: v.$spacing-lg;
-    margin-left: 0px; // Ширина сайдбара + отступ
+    margin-left: 0px;
   }
 }

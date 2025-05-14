@@ -8,20 +8,31 @@ const Header: React.FC = () => {
     <header className="header">
       <nav className="header-nav">
         <ul className="header-list">
-
+          <div className="header-flex">
             <img src={logo} alt="Логотип" className="header-logo"></img>
-          <li className="header-item">
-            <Link to="/projects" className="header-link">Проекты</Link>
-          </li>
-          <li className="header-item">
-            <Link to="/tasks" className="header-link">Задачи</Link>
-          </li>
-          <li className="header-item">
-            <Link to="/compare" className="header-link">Сравнение</Link>
-          </li>
-          <li className="header-item">
-            <Link to="/my-projects" className="header-link">Мои проекты</Link>
-          </li>
+          </div>
+          <div className="header-flex2">
+            <li className="header-item">
+              <Link to="/projects" className="header-link">Проекты</Link>
+            </li>
+            <li className="header-item">
+              <Link to="/my-projects" className="header-link">Мои проекты</Link>
+            </li>
+            <li className="header-item">
+              <Link to="/compare" className="header-link">Сравнение</Link>
+            </li>
+          </div>
+          <div className="header-flex">
+            <span className="header-title">
+              Jira Analyzer
+              <div className="aurora">
+                <div className="aurora__item"></div>
+                <div className="aurora__item"></div>
+                <div className="aurora__item"></div>
+                <div className="aurora__item"></div>
+              </div>
+            </span>
+          </div>
         </ul>
       </nav>
     </header>

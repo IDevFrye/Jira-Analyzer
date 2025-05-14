@@ -16,6 +16,49 @@
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   }
 
+  .project-action-button {
+    padding: 0.5rem 1rem;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    min-width: 90px;
+    text-align: center;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: v.$shadow-sm;
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    &.add {
+      background-color: v.$primary-color;
+
+      &:hover:not(:disabled) {
+        background-color: darken(v.$primary-color, 10%);
+      }
+    }
+
+    &.remove {
+      background-color: v.$error-color;
+
+      &:hover:not(:disabled) {
+        background-color: darken(v.$error-color, 10%);
+      }
+    }
+  }
+
   .project-content {
     padding: 1.5rem;
     display: flex;

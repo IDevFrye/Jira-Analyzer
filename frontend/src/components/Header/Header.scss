@@ -16,18 +16,18 @@
 
   &-nav {
     padding: 0 v.$spacing-xl;
-    max-width: 1400px;
-    margin: 0 auto;
+    // max-width: 1400px;
+    // margin: 0 auto;
     display: flex;
     align-items: center;
   }
 
   &-logo {
     height: 50px;
-    width: auto;
-    margin-top: 5px;
-    margin-right: 15px;
-    margin-right: v.$spacing-lg;
+    width: 50px;
+    // margin-top: 5px;
+    // margin-right: 15px;
+    // margin-right: v.$spacing-lg;
     transition: all 0.3s ease;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 
@@ -40,11 +40,37 @@
 
   &-list {
     display: flex;
+    justify-content: space-between;
     list-style: none;
     margin: 0;
     padding: 0;
     flex-grow: 1;
   }
+
+  &-flex {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    // justify-content: center;
+    margin: 0 20px;
+    align-items: center;
+  }
+
+  &-flex2 {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    // justify-content: center;
+    margin: 0 20px;
+    align-items: center;
+  }
+
+  // &-title {
+  //   color: rgba(white, 0.9);
+  //   font-weight: 700;
+  //   margin-right: 10px;
+  //   font-size: 30px;
+  // }
 
   &-item {
     position: relative;
@@ -160,5 +186,191 @@
     &-logo {
       height: 40px;
     }
+  }
+}
+
+// Aurora gradient animation styles
+.header-title {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, v.$primary-color 0%, darken(v.$primary-color, 50%) 100%);
+  margin: 0;
+  font-weight: 800;
+  font-size: 30px;
+  color: rgb(157, 117, 252);
+  padding: 0 10px;
+  border-radius: 5px;
+  
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+.aurora {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  mix-blend-mode: darken;
+  pointer-events: none;
+}
+
+.aurora__item {
+  overflow: hidden;
+  position: absolute;
+  width: 60%;
+  height: 60%;
+  background-color: var(--clr-1);
+  border-radius: 37% 29% 27% 27% / 28% 25% 41% 37%;
+  filter: blur(10px);
+  mix-blend-mode: overlay;
+}
+
+:root {
+  --clr-1: #6200ff;
+  --clr-2: #8c00ff;
+  --clr-3: #370aff;
+  --clr-4: #b546ff;
+}
+
+.aurora__item:nth-of-type(1) {
+  top: -50%;
+  background-color: var(--clr-1);
+  animation: aurora-border 6s ease-in-out infinite,
+    aurora-1 12s ease-in-out infinite alternate;
+}
+
+.aurora__item:nth-of-type(2) {
+  background-color: var(--clr-3);
+  right: 0;
+  top: 0;
+  animation: aurora-border 6s ease-in-out infinite,
+    aurora-2 12s ease-in-out infinite alternate;
+}
+
+.aurora__item:nth-of-type(3) {
+  background-color: var(--clr-2);
+  left: 0;
+  bottom: 0;
+  animation: aurora-border 6s ease-in-out infinite,
+    aurora-3 8s ease-in-out infinite alternate;
+}
+
+.aurora__item:nth-of-type(4) {
+  background-color: var(--clr-4);
+  right: 0;
+  bottom: -50%;
+  animation: aurora-border 6s ease-in-out infinite,
+    aurora-4 24s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-1 {
+  0% {
+    top: 0;
+    right: 0;
+  }
+
+  50% {
+    top: 100%;
+    right: 75%;
+  }
+
+  75% {
+    top: 100%;
+    right: 25%;
+  }
+
+  100% {
+    top: 0;
+    right: 0;
+  }
+}
+
+@keyframes aurora-2 {
+  0% {
+    top: -50%;
+    left: 0%;
+  }
+
+  60% {
+    top: 100%;
+    left: 75%;
+  }
+
+  85% {
+    top: 100%;
+    left: 25%;
+  }
+
+  100% {
+    top: -50%;
+    left: 0%;
+  }
+}
+
+@keyframes aurora-3 {
+  0% {
+    bottom: 0;
+    left: 0;
+  }
+
+  40% {
+    bottom: 100%;
+    left: 75%;
+  }
+
+  65% {
+    bottom: 40%;
+    left: 50%;
+  }
+
+  100% {
+    bottom: 0;
+    left: 0;
+  }
+}
+
+@keyframes aurora-4 {
+  0% {
+    bottom: -50%;
+    right: 0;
+  }
+
+  50% {
+    bottom: 0%;
+    right: 40%;
+  }
+
+  90% {
+    bottom: 50%;
+    right: 25%;
+  }
+
+  100% {
+    bottom: -50%;
+    right: 0;
+  }
+}
+
+@keyframes aurora-border {
+  0% {
+    border-radius: 37% 29% 27% 27% / 28% 25% 41% 37%;
+  }
+
+  25% {
+    border-radius: 47% 29% 39% 49% / 61% 19% 66% 26%;
+  }
+
+  50% {
+    border-radius: 57% 23% 47% 72% / 63% 17% 66% 33%;
+  }
+
+  75% {
+    border-radius: 28% 49% 29% 100% / 93% 20% 64% 25%;
+  }
+
+  100% {
+    border-radius: 37% 29% 27% 27% / 28% 25% 41% 37%;
   }
 }

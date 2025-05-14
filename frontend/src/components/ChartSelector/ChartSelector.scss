@@ -1,0 +1,60 @@
+@use '../../styles/variables' as v;
+
+.chart {
+  &-selector {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: v.$spacing-md;
+  }
+
+  &-selector-title {
+    color: v.$text-primary;
+    margin-bottom: v.$spacing-lg;
+    text-align: center;
+    font-size: 1.5rem;
+  }
+
+  &-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: v.$spacing-sm;
+    margin-bottom: v.$spacing-lg;
+    justify-content: center;
+  }
+
+  &-tab {
+    padding: v.$spacing-sm v.$spacing-md;
+    background-color: rgba(v.$primary-color, 0.1);
+    border: none;
+    border-radius: v.$rounded-md;
+    color: v.$text-secondary;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+
+    &:hover {
+      background-color: rgba(v.$primary-color, 0.2);
+      color: v.$text-primary;
+    }
+
+    &.active {
+      background-color: v.$primary-color;
+      color: white;
+      font-weight: 500;
+    }
+  }
+
+  &-container {
+    background-color: white;
+    border-radius: v.$rounded-lg;
+    padding: v.$spacing-lg;
+    box-shadow: v.$shadow-md;
+    min-height: 400px;
+    max-height: 70vh;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}

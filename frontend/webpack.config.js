@@ -76,14 +76,58 @@ module.exports = {
       // Получение всех загруженных проектов
       app.get('/api/v1/projects', (req, res) => {
         res.json([
-          { Id: 1, Key: 'ANLYZ', Name: 'Jira Analytics', Url: 'http://jira.local/browse/ANLYZ' },
-          { Id: 2, Key: 'MKTG', Name: 'Marketing Campaigns', Url: 'http://jira.local/browse/MKTG' },
-          { Id: 3, Key: 'DEVOPS', Name: 'DevOps Tools', Url: 'http://jira.local/browse/DEVOPS' },
-          { Id: 4, Key: 'CRM', Name: 'CRM System', Url: 'http://jira.local/browse/CRM' },
-          { Id: 5, Key: 'HRM', Name: 'HR Management', Url: 'http://jira.local/browse/HRM' },
-          { Id: 6, Key: 'FIN', Name: 'Finance Tracker', Url: 'http://jira.local/browse/FIN' },
-          { Id: 7, Key: 'QA', Name: 'QA Automation', Url: 'http://jira.local/browse/QA' },
-          { Id: 8, Key: 'DOCS', Name: 'Documentation Updates', Url: 'http://jira.local/browse/DOCS' },
+          { 
+            Id: 1, 
+            Key: 'ANLYZ', 
+            Name: 'Jira Analytics', 
+            Url: 'http://jira.local/browse/ANLYZ' 
+          },
+          { 
+            Id: 2, 
+            Key: 'MKTG', 
+            Name: 'Marketing Campaigns', 
+            Url: 'http://jira.local/browse/MKTG' 
+          },
+          { 
+            Id: 3, 
+            Key: 'DEVOPS', 
+            Name: 'DevOps Tools', 
+            Url: 'http://jira.local/browse/DEVOPS' 
+          },
+          { 
+            Id: 4, 
+            Key: 'CRM', 
+            Name: 'CRM System', 
+            Url: 'http://jira.local/browse/CRM' 
+          },
+          { 
+            Id: 5, 
+            Key: 'HRM', 
+            Name: 'HR Management', 
+            Url: 'http://jira.local/browse/HRM',
+            Stats: true 
+          },
+          { 
+            Id: 6, 
+            Key: 'FIN', 
+            Name: 'Finance Tracker', 
+            Url: 'http://jira.local/browse/FIN',
+            Stats: true 
+          },
+          { 
+            Id: 7, 
+            Key: 'QA', 
+            Name: 'QA Automation', 
+            Url: 'http://jira.local/browse/QA',
+            Stats: true 
+          },
+          { 
+            Id: 8, 
+            Key: 'DOCS', 
+            Name: 'Documentation Updates', 
+            Url: 'http://jira.local/browse/DOCS',
+            Stats: true 
+          },
         ]);
       });
 
@@ -95,16 +139,28 @@ module.exports = {
           2: { Key: 'MKTG', Name: 'Marketing Campaigns', openIssuesCount: 10, closeIssuesCount: 20, resolvedIssuesCount: 10, progressIssuesCount: 5 },
           3: { Key: 'DEVOPS', Name: 'DevOps Tools', openIssuesCount: 5, closeIssuesCount: 200, resolvedIssuesCount: 150, progressIssuesCount: 30 },
           4: { Key: 'CRM', Name: 'CRM System', openIssuesCount: 8, closeIssuesCount: 12, resolvedIssuesCount: 11, progressIssuesCount: 2 },
+          5: { Key: 'HRM', Name: 'HR Management', openIssuesCount: 15, closeIssuesCount: 45, resolvedIssuesCount: 40, progressIssuesCount: 5 },
+          6: { Key: 'FIN', Name: 'Finance Tracker', openIssuesCount: 7, closeIssuesCount: 35, resolvedIssuesCount: 30, progressIssuesCount: 2 },
+          7: { Key: 'QA', Name: 'QA Automation', openIssuesCount: 12, closeIssuesCount: 80, resolvedIssuesCount: 75, progressIssuesCount: 5 },
+          8: { Key: 'DOCS', Name: 'Documentation Updates', openIssuesCount: 3, closeIssuesCount: 20, resolvedIssuesCount: 18, progressIssuesCount: 2 }
         };
-        const project = stats[id] || { Key: `PRJ${id}`, Name: `Project ${id}`, openIssuesCount: 0, closeIssuesCount: 0, resolvedIssuesCount: 0, progressIssuesCount: 0 };
+
+        const project = stats[id] || { 
+          Key: `PRJ${id}`, 
+          Name: `Project ${id}`, 
+          openIssuesCount: 0, 
+          closeIssuesCount: 0, 
+          resolvedIssuesCount: 0, 
+          progressIssuesCount: 0 
+        };
 
         res.json({
           Id: id,
           ...project,
           allIssuesCount: project.openIssuesCount + project.closeIssuesCount,
           reopenedIssuesCount: Math.floor(Math.random() * 10),
-          averageTime: +(Math.random() * 10).toFixed(2),
-          averageIssuesCount: Math.floor(Math.random() * 100)
+          averageTime: +(Math.random() * 10 + 5).toFixed(2), // от 5 до 15 часов
+          averageIssuesCount: Math.floor(Math.random() * 20 + 5) // от 5 до 25 задач
         });
       });
 
@@ -197,8 +253,143 @@ module.exports = {
         res.json({ taskNumber, comparison });
       });
 
+      // Аналитика времени в открытом состоянии
+      app.get('/api/v1/analytics/time-open', (req, res) => {
+        const ranges = [
+          '0-1', '1-2', '2-3', '3-5', '5-7', 
+          '7-10', '10-14', '14-21', '21-30', '30+'
+        ];
+        
+        res.json({
+          project: req.query.project,
+          data: ranges.map(range => ({
+            range: `${range} дней`,
+            count: Math.floor(Math.random() * 50) + 5
+          }))
+        });
+      });
 
-      // Моки заканчиваются тут 👆
+      // Распределение по статусам
+      app.get('/api/v1/analytics/status-distribution', (req, res) => {
+        const statuses = [
+          { status: 'Open', color: '#ef4444' },
+          { status: 'In Progress', color: '#f59e0b' },
+          { status: 'Resolved', color: '#10b981' },
+          { status: 'Closed', color: '#3b82f6' },
+          { status: 'Reopened', color: '#8b5cf6' }
+        ];
+        
+        res.json({
+          project: req.query.project,
+          data: statuses.map(s => ({
+            status: s.status,
+            count: Math.floor(Math.random() * 100) + 10
+          }))
+        });
+      });
+
+      // Затраченное время
+      app.get('/api/v1/analytics/time-spent', (req, res) => {
+        const users = [
+          'John Doe', 'Jane Smith', 'Mike Johnson', 
+          'Sarah Williams', 'David Brown', 'Emily Davis'
+        ];
+        
+        res.json({
+          project: req.query.project,
+          data: users.map(user => ({
+            user,
+            time: Math.floor(Math.random() * 80) + 5
+          }))
+        });
+      });
+
+      // Распределение по приоритетам
+      app.get('/api/v1/analytics/priority', (req, res) => {
+        const priorities = [
+          { priority: 'Critical', color: '#ef4444' },
+          { priority: 'High', color: '#f97316' },
+          { priority: 'Medium', color: '#f59e0b' },
+          { priority: 'Low', color: '#84cc16' }
+        ];
+        
+        res.json({
+          project: req.query.project,
+          data: priorities.map(p => ({
+            priority: p.priority,
+            count: Math.floor(Math.random() * 50) + 5
+          }))
+        });
+      });
+
+      // Сравнение времени в открытом состоянии
+      app.get('/api/v1/compare/time-open', (req, res) => {
+        const projectKeys = req.query.projects?.split(',') || [];
+        
+        const ranges = ['0-1', '1-2', '2-3', '3-5', '5-7', '7-10', '10-14', '14-21', '21-30', '30+'];
+        
+        res.json({
+          projects: projectKeys,
+          data: projectKeys.map(key => ({
+            project: key,
+            data: ranges.map(range => ({
+              range: `${range} дней`,
+              count: Math.floor(Math.random() * 50) + 5
+            }))
+          }))
+        });
+      });
+
+      // Сравнение распределения по статусам
+      app.get('/api/v1/compare/status-distribution', (req, res) => {
+        const projectKeys = req.query.projects?.split(',') || [];
+        const statuses = ['Open', 'In Progress', 'Resolved', 'Closed', 'Reopened'];
+        
+        res.json({
+          projects: projectKeys,
+          data: projectKeys.map(key => ({
+            project: key,
+            data: statuses.map(status => ({
+              status,
+              count: Math.floor(Math.random() * 100) + 10
+            }))
+          }))
+        });
+      });
+
+      // Сравнение затраченного времени
+      app.get('/api/v1/compare/time-spent', (req, res) => {
+        const projectKeys = req.query.projects?.split(',') || [];
+        const users = ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Williams', 'David Brown'];
+        
+        res.json({
+          projects: projectKeys,
+          data: projectKeys.map(key => ({
+            project: key,
+            data: users.map(user => ({
+              user,
+              time: Math.floor(Math.random() * 80) + 5
+            }))
+          }))
+        });
+      });
+
+      // Сравнение по приоритетам
+      app.get('/api/v1/compare/priority', (req, res) => {
+        const projectKeys = req.query.projects?.split(',') || [];
+        const priorities = ['Critical', 'High', 'Medium', 'Low'];
+        
+        res.json({
+          projects: projectKeys,
+          data: projectKeys.map(key => ({
+            project: key,
+            data: priorities.map(priority => ({
+              priority,
+              count: Math.floor(Math.random() * 50) + 5
+            }))
+          }))
+        });
+      });
 
       return middlewares;
     }

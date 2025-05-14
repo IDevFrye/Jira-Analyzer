@@ -4,6 +4,7 @@
   padding: v.$spacing-xl;
   max-width: 1400px;
   margin: 0 auto;
+  min-height: 60vh;
 
   &-header {
     display: flex;
@@ -11,40 +12,113 @@
     align-items: center;
     margin-bottom: v.$spacing-xl;
     flex-wrap: wrap;
-    gap: v.$spacing-md;
-  }
+    gap: 1.5rem;
 
-  &-title {
-    font-size: 2rem;
-    color: v.$text-primary;
-    margin: 0;
-    font-weight: 700;
-  }
+    .my-projects-title {
+      font-size: 2rem;
+      color: v.$text-primary;
+      margin: 0;
+      font-weight: 700;
+    }
 
-  &-search {
-    padding: 0.75rem 1.5rem;
-    border: 2px solid v.$border-color;
-    border-radius: 50px;
-    font-size: 1rem;
-    outline: none;
-    transition: all 0.3s ease;
-    width: 300px;
-    max-width: 100%;
+    .search-container {
+      position: relative;
+      width: 300px;
+      max-width: 100%;
+      transition: all 0.3s ease;
+      
+      &.focused {
+        width: 400px;
+      }
 
-    &:focus {
-      border-color: v.$primary-color;
-      box-shadow: 0 0 0 3px rgba(v.$primary-color, 0.2);
+      .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: v.$text-secondary;
+        transition: all 0.3s ease;
+        font-size: 1.2rem;
+        z-index: 2;
+      }
+
+      .clear-search-btn {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: v.$text-secondary;
+        cursor: pointer;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        border-radius: 50%;
+        z-index: 2;
+
+        &:hover {
+          color: v.$error-color;
+          background: rgba(v.$error-color, 0.1);
+        }
+
+        svg {
+          width: 1rem;
+          height: 1rem;
+        }
+      }
+    }
+
+    .my-projects-search {
+      padding: 0.75rem 1.5rem 0.75rem 3rem;
+      border: 2px solid v.$border-color;
+      border-radius: 50px;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s ease;
+      width: 100%;
+      background-color: rgba(v.$background-light, 0.8);
+      position: relative;
+      z-index: 1;
+
+      &:focus {
+        border-color: v.$primary-color;
+        box-shadow: 0 0 0 3px rgba(v.$primary-color, 0.2);
+        padding-right: 2.5rem;
+        
+        ~ .search-icon {
+          color: v.$primary-color;
+        }
+      }
+
+      &::placeholder {
+        color: v.$text-secondary;
+        opacity: 0.7;
+      }
     }
   }
 
-  &-loading {
+  .stats-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: v.$spacing-lg;
+    animation: fadeIn 0.5s ease-out;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .loading-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: v.$spacing-xl;
+    padding: 4rem 0;
     color: v.$text-secondary;
-    
+
     .loading-spinner {
       width: 50px;
       height: 50px;
@@ -52,54 +126,76 @@
       border-radius: 50%;
       border-top-color: v.$primary-color;
       animation: spin 1s ease-in-out infinite;
-      margin-bottom: v.$spacing-md;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      font-size: 1.1rem;
     }
   }
 
-  &-empty {
+  .empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: v.$spacing-xl;
+    padding: 4rem 0;
     text-align: center;
     color: v.$text-secondary;
+    min-height: 300px;
 
-    img {
-      width: 200px;
-      height: 200px;
-      margin-bottom: v.$spacing-lg;
-      opacity: 0.7;
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      opacity: 0.5;
+      color: v.$primary-color;
+      animation: fadeIn 0.5s ease-out;
     }
 
     p {
       font-size: 1.2rem;
-      margin-bottom: v.$spacing-lg;
+      margin-bottom: 1.5rem;
+      max-width: 400px;
+      line-height: 1.5;
     }
 
-    .clear-search {
+    .search-empty-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+
+      .empty-icon {
+        color: v.$text-secondary;
+      }
+
+      p {
+        strong {
+          color: v.$text-primary;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .clear-search-btn.large {
       background-color: v.$primary-color;
       color: white;
       border: none;
-      padding: v.$spacing-sm v.$spacing-md;
-      border-radius: v.$rounded-md;
+      padding: 0.75rem 1.5rem;
+      border-radius: 50px;
+      font-size: 1rem;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
 
       &:hover {
         background-color: darken(v.$primary-color, 10%);
+        transform: translateY(-2px);
       }
     }
-  }
-}
-
-.stats-cards-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: v.$spacing-lg;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -107,69 +203,7 @@
   to { transform: rotate(360deg); }
 }
 
-.my-projects-search {
-  transition: all 0.3s ease;
-  
-  &:focus {
-    border-color: v.$primary-color;
-    box-shadow: 0 0 0 3px rgba(v.$primary-color, 0.2);
-    width: 350px; // Увеличиваем при фокусе
-  }
-}
-
-.clear-search {
-  background-color: v.$primary-color;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: v.$rounded-md;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 1rem;
-
-  &:hover {
-    background-color: darken(v.$primary-color, 10%);
-    transform: translateY(-1px);
-  }
-}
-
-.my-projects-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: v.$spacing-xl;
-  text-align: center;
-  color: v.$text-secondary;
-  min-height: 300px;
-
-  .empty-icon {
-    font-size: 4rem;
-    margin-bottom: v.$spacing-lg;
-    opacity: 0.5;
-  }
-
-  .folder-icon {
-    color: v.$primary-color;
-  }
-
-  .search-icon {
-    color: v.$text-secondary;
-  }
-
-  p {
-    font-size: 1.2rem;
-    margin-bottom: v.$spacing-lg;
-    max-width: 400px;
-    line-height: 1.5;
-  }
-}
-
-.empty-icon {
-  animation: fadeIn 0.5s ease-out;
-}
-
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 0.5; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

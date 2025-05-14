@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import StatsCard from '../../components/StatsCard/StatsCard';
 import { Project } from '../../types/models';
-import { FiFolder, FiSearch } from 'react-icons/fi';
+import { FiFolder, FiSearch, FiX } from 'react-icons/fi';
 import './MyProjectsPage.scss';
 
 const MyProjectsPage: React.FC = () => {
@@ -10,8 +10,8 @@ const MyProjectsPage: React.FC = () => {
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  // Загрузка проектов
   useEffect(() => {
     setLoading(true);
     axios.get('/api/v1/projects')
@@ -25,7 +25,6 @@ const MyProjectsPage: React.FC = () => {
       });
   }, []);
 
-  // Фильтрация проектов
   useEffect(() => {
     if (search.trim() === '') {
       setFilteredProjects(projects);
@@ -38,47 +37,61 @@ const MyProjectsPage: React.FC = () => {
     }
   }, [search, projects]);
 
+  const handleClearSearch = () => {
+    setSearch('');
+  };
+
   return (
     <div className="my-projects">
       <div className="my-projects-header">
         <h1 className="my-projects-title">Мои проекты</h1>
-        <input
-          type="text"
-          className="my-projects-search"
-          placeholder="Поиск проектов..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <div className={`search-container ${isSearchFocused ? 'focused' : ''}`}>
+          <FiSearch className="search-icon" />
+          <input
+            type="text"
+            className="my-projects-search"
+            placeholder="Поиск проектов..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
+          />
+          {search && (
+            <button className="clear-search-btn" onClick={handleClearSearch}>
+              <FiX />
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
-        <div className="my-projects-loading">
+        <div className="loading-state">
           <div className="loading-spinner"></div>
-          Загрузка проектов...
+          <p>Загрузка проектов...</p>
         </div>
       ) : filteredProjects.length === 0 ? (
-          <div className="my-projects-empty">
-            {search ? (
-              <>
-                <FiSearch className="empty-icon search-icon" />
-                <p>Ничего не найдено по запросу "{search}"</p>
-              </>
-            ) : (
-              <>
-                <FiFolder className="empty-icon folder-icon" />
-                <p>У вас пока нет проектов</p>
-              </>
-            )}
-            {search && (
-              <button 
-                className="clear-search"
-                onClick={() => setSearch('')}
-              >
-                Очистить поиск
-              </button>
-            )}
-          </div>
-        ) : (
+        <div className="empty-state">
+          {search ? (
+            <>
+              <div className="search-empty-content">
+                <FiSearch className="empty-icon" />
+                <p>Не найдено проектов по запросу <strong>"{search}"</strong></p>
+                <button 
+                  className="clear-search-btn large"
+                  onClick={handleClearSearch}
+                >
+                  Очистить поиск
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <FiFolder className="empty-icon" />
+              <p>У вас пока нет проектов</p>
+            </>
+          )}
+        </div>
+      ) : (
         <div className="stats-cards-container">
           {filteredProjects.map((project) => (
             <StatsCard key={project.Id} projectId={project.Id} />

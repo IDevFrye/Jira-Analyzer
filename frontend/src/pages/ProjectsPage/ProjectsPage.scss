@@ -6,6 +6,7 @@
   padding: 2rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: v.$text-primary;
+  min-height: 60vh;
 
   .projects-header {
     display: flex;
@@ -13,7 +14,7 @@
     align-items: center;
     margin-bottom: 2rem;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 1.5rem;
 
     .projects-title {
       font-size: 2rem;
@@ -22,19 +23,81 @@
       margin: 0;
     }
 
+    .search-container {
+      position: relative;
+      width: 300px;
+      max-width: 100%;
+      transition: all 0.3s ease;
+      
+      &.focused {
+        width: 400px;
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: v.$text-secondary;
+        transition: all 0.3s ease;
+        font-size: 1.2rem;
+        z-index: 2;
+      }
+
+      .clear-search-btn {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: v.$text-secondary;
+        cursor: pointer;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        border-radius: 50%;
+        z-index: 2;
+
+        &:hover {
+          color: v.$error-color;
+          background: rgba(v.$error-color, 0.1);
+        }
+
+        svg {
+          width: 1rem;
+          height: 1rem;
+        }
+      }
+    }
+
     .projects-search {
-      padding: 0.75rem 1.5rem;
+      padding: 0.75rem 1.5rem 0.75rem 3rem;
       border: 2px solid v.$border-color;
       border-radius: 50px;
       font-size: 1rem;
       outline: none;
       transition: all 0.3s ease;
-      width: 300px;
-      max-width: 100%;
+      width: 100%;
+      background-color: rgba(v.$background-light, 0.8);
+      position: relative;
+      z-index: 1;
 
       &:focus {
         border-color: v.$primary-color;
         box-shadow: 0 0 0 3px rgba(v.$primary-color, 0.2);
+        padding-right: 2.5rem;
+        
+        ~ .search-icon {
+          color: v.$primary-color;
+        }
+      }
+
+      &::placeholder {
+        color: v.$text-secondary;
+        opacity: 0.7;
       }
     }
   }
@@ -44,6 +107,7 @@
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
+    animation: fadeIn 0.5s ease-out;
   }
 
   .projects-pagination {
@@ -52,6 +116,7 @@
     align-items: center;
     gap: 1.5rem;
     margin-top: 2rem;
+    animation: fadeIn 0.5s ease-out;
 
     .pagination-button {
       padding: 0.75rem 1.5rem;
@@ -83,4 +148,100 @@
       font-weight: 600;
     }
   }
+
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 0;
+    color: v.$text-secondary;
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(v.$primary-color, 0.2);
+      border-radius: 50%;
+      border-top-color: v.$primary-color;
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      font-size: 1.1rem;
+    }
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 0;
+    text-align: center;
+    color: v.$text-secondary;
+    min-height: 300px;
+
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      opacity: 0.5;
+      color: v.$primary-color;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+      max-width: 400px;
+      line-height: 1.5;
+    }
+
+    .search-empty-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+
+      .empty-icon {
+        color: v.$text-secondary;
+      }
+
+      p {
+        strong {
+          color: v.$text-primary;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .clear-search-btn.large {
+      background-color: v.$primary-color;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 50px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      &:hover {
+        background-color: darken(v.$primary-color, 10%);
+        transform: translateY(-2px);
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

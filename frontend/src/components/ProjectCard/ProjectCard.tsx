@@ -1,15 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { Project } from '../../types/models';
 import './ProjectCard.scss';
 
 interface ProjectCardProps extends Project {
-  onAdd: (id: number) => void;
+  onUpdate: () => void;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ Id, Name, Key, Url, onAdd }) => {
-  const handleAdd = () => {
-    axios.post('/api/v1/connector/updateProject', { project: Key });
+const ProjectCard: React.FC<ProjectCardProps> = ({ Id, Name, Key, Url, onUpdate }) => {
+  const [isAdded, setIsAdded] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleAction = async () => {
+    setLoading(true);
+    try {
+      if (isAdded) {
+        await axios.delete(`/api/v1/projects/${Id}`);
+      } else {
+        await axios.post('/api/v1/connector/updateProject', { project: Key });
+      }
+      setIsAdded(!isAdded);
+      onUpdate();
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -27,10 +43,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ Id, Name, Key, Url, onAdd }) 
             Перейти
           </a>
           <button 
-            onClick={handleAdd}
-            className="project-add-button"
+            onClick={handleAction}
+            className={`project-action-button ${isAdded ? 'remove' : 'add'}`}
+            disabled={loading}
           >
-            Добавить
+            {loading ? (
+              'Загрузка...'
+            ) : isAdded ? (
+              'Удалить'
+            ) : (
+              'Добавить'
+            )}
           </button>
         </div>
       </div>

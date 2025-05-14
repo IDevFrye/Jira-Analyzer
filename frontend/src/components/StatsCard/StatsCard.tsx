@@ -8,11 +8,13 @@ import {
   FaLockOpen,
   FaRedo,
   FaClock,
-  FaCalendarDay
+  FaCalendarDay,
+  FaChartBar
 } from 'react-icons/fa';
 import { FaCalendarAlt } from 'react-icons/fa';
 import { GiSandsOfTime } from 'react-icons/gi';
-
+import Modal from '../Modal/Modal';
+import ChartSelector from '../ChartSelector/ChartSelector';
 
 interface StatsCardProps {
   projectId: number;
@@ -20,26 +22,45 @@ interface StatsCardProps {
 
 const StatsCard: React.FC<StatsCardProps> = ({ projectId }) => {
   const [stats, setStats] = useState<any>(null);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get(`/api/v1/projects/${projectId}`).then((res) => {
-      setStats(res.data);
-    });
+    setLoading(true);
+    axios.get(`/api/v1/projects/${projectId}`)
+      .then((res) => {
+        setStats(res.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
   }, [projectId]);
 
-  if (!stats) return (
+  if (loading) return (
+  <div className="stats-card">
     <div className="stats-loading">
       <div className="loading-spinner"></div>
-      Загрузка данных...
+      <p>Загрузка данных...</p>
     </div>
-  );
+  </div>
+);
+
+  if (!stats) return (
+  <div className="stats-card">
+    <div className="stats-error">
+      <p>Не удалось загрузить данные проекта</p>
+    </div>
+  </div>
+);
 
   return (
-    <div className="stats-card">
-      <div className="stats-header">
-        <h3 className="stats-title">{stats.Name}</h3>
-        <span className="stats-key">{stats.Key}</span>
-      </div>
+    <>
+      <div className="stats-card">
+        <div className="stats-header">
+          <h3 className="stats-title">{stats.Name}</h3>
+          <span className="stats-key">{stats.Key}</span>
+        </div>
       
       <div className="stats-grid">
         <div className="stat-item">
@@ -114,7 +135,19 @@ const StatsCard: React.FC<StatsCardProps> = ({ projectId }) => {
           </div>
         </div>
       </div>
-    </div>
+      <button 
+          className="analytics-button"
+          onClick={() => setShowAnalytics(true)}
+        >
+          <FaChartBar className="analytics-icon" />
+          Показать аналитику
+        </button>
+      </div>
+      
+      <Modal isOpen={showAnalytics} onClose={() => setShowAnalytics(false)}>
+        <ChartSelector projectKey={stats.Key} />
+      </Modal>
+    </>
   );
 };
 

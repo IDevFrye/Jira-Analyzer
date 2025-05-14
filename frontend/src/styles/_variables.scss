@@ -1,24 +1,22 @@
-// Colors
-$primary-color: #4361ee;
+$primary-color: #8263f1;
 $accent-color: #3a0ca3;
 $text-primary: #2b2d42;
 $text-secondary: #8d99ae;
 $border-color: #e2e8f0;
 $disabled-color: #cbd5e0;
+$error-color:#500136;
+$background-light:#f2ecf8;
 
-// Shadows
 $shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 $shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
-// Spacing
 $spacing-xs: 0.25rem;
 $spacing-sm: 0.5rem;
 $spacing-md: 1rem;
 $spacing-lg: 1.5rem;
 $spacing-xl: 2rem;
 
-// Border radius
 $rounded-sm: 0.25rem;
 $rounded-md: 0.5rem;
 $rounded-lg: 0.75rem;

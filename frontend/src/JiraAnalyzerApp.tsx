@@ -1,9 +1,7 @@
-import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import Router from './router';
-import Header from './components/Header/Header';
-import Sidebar from './components/Sidebar/Sidebar';
 import Layout from './components/Layout/Layout';
+import './config/chartConfig';
 
 const JiraAnalyzerApp = () => (
   <BrowserRouter>
