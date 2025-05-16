@@ -36,7 +36,7 @@ func TestLoadNewProject(t *testing.T) {
 	assert.NoError(t, err)
 
 	// 3. Загружаем задачи
-	err = testDB.PushIssues(testProject.Title, testIssues)
+	err = testDB.PushIssues(testProject, testIssues)
 	assert.NoError(t, err)
 
 	// 4. Проверяем, что проект и задачи сохранились
@@ -67,7 +67,7 @@ func TestUpdateExistingProject(t *testing.T) {
 	_, err = testDB.PushProject(testProject)
 	assert.NoError(t, err)
 
-	err = testDB.PushIssues(testProject.Title, testIssue)
+	err = testDB.PushIssues(testProject, testIssue)
 	assert.NoError(t, err)
 
 	// 2. Подготавливаем обновленные данные
@@ -75,7 +75,7 @@ func TestUpdateExistingProject(t *testing.T) {
 
 	// 3. Обновляем проект (симулируем вызов /updateProject)
 	// обновляем задачи
-	err = testDB.PushIssues(testProject.Title, updatedIssues)
+	err = testDB.PushIssues(testProject, updatedIssues)
 	assert.NoError(t, err)
 
 	// 4. Проверяем результаты

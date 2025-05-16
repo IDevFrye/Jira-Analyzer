@@ -31,7 +31,7 @@ func NewApp(cfg *config.Config, log *slog.Logger) (*JiraApp, error) {
 		return nil, err
 	}
 
-	datatransformer := datatransformer.NewDataTransformer()
+	datatransformer := datatransformer.NewDataTransformer(cfg.JiraCfg.Url)
 
 	service, err := jiraservice.NewJiraService(cfg, con, datatransformer, dbPusher, log)
 	if err != nil {

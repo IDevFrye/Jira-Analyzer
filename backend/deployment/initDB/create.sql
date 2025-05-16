@@ -1,6 +1,7 @@
 CREATE TABLE Projects (
     id serial PRIMARY KEY, 
-    title TEXT UNIQUE
+    title TEXT UNIQUE,
+    url TEXT
 );
 
 CREATE TABLE Author (

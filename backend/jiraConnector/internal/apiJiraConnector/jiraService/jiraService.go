@@ -23,15 +23,15 @@ type DataTransformerInterface interface {
 	TransformAuthorDB(jiraAuthor structures.User) structures.DBAuthor
 	TransformProjectDB(jiraProject structures.JiraProject) structures.DBProject
 	TransformIssueDB(jiraIssue structures.JiraIssue) structures.DBIssue
-	TransformToDbIssueSet(projectName string, jiraIssue structures.JiraIssue) *datatransformer.DataTransformer
+	TransformToDbIssueSet(project structures.JiraProject, jiraIssue structures.JiraIssue) *datatransformer.DataTransformer
 }
 
 type DbPusherInterface interface {
 	PushProject(project structures.DBProject) (int, error)
 	PushProjects(projects []structures.DBProject) error
 	PushStatusChanges(issue int, changes datatransformer.DataTransformer) error
-	PushIssue(project string, issue datatransformer.DataTransformer) (int, error)
-	PushIssues(project string, issues []datatransformer.DataTransformer) error
+	PushIssue(project structures.DBProject, issue datatransformer.DataTransformer) (int, error)
+	PushIssues(project structures.DBProject, issues []datatransformer.DataTransformer) error
 	Close()
 }
 
@@ -65,10 +65,10 @@ func (js *JiraService) UpdateProjects(projectId string) ([]structures.JiraIssue,
 	return js.jiraConnector.GetProjectIssues(projectId)
 }
 
-func (js *JiraService) PushDataToDb(project string, issues []structures.JiraIssue) error {
+func (js *JiraService) PushDataToDb(project structures.JiraProject, issues []structures.JiraIssue) error {
 	data := js.TransformDataToDb(project, issues)
-
-	if err := js.dbPusher.PushIssues(project, data); err != nil {
+	prj := js.dataTransformer.TransformProjectDB(project)
+	if err := js.dbPusher.PushIssues(prj, data); err != nil {
 		js.log.Error("error push issues", logger.Err(err))
 		return fmt.Errorf("%w", err)
 	}
@@ -79,7 +79,7 @@ func (js *JiraService) PushDataToDb(project string, issues []structures.JiraIssu
 
 }
 
-func (js *JiraService) TransformDataToDb(project string, issues []structures.JiraIssue) []datatransformer.DataTransformer {
+func (js *JiraService) TransformDataToDb(project structures.JiraProject, issues []structures.JiraIssue) []datatransformer.DataTransformer {
 	var issuesDb []datatransformer.DataTransformer
 
 	for _, issue := range issues {
