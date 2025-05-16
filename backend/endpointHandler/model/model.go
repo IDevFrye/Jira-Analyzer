@@ -1,10 +1,15 @@
 package model
 
 type Project struct {
-	ID   string `json:"id"` // БЫЛО: int
+	ID   string `json:"id"`
 	Key  string `json:"key"`
 	Name string `json:"name"`
 	Self string `json:"self"`
+}
+
+type DBProject struct {
+	ID    int    `db:"id" json:"id"`
+	Title string `db:"title" json:"title"`
 }
 
 type ProjectStats struct {

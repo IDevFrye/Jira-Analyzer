@@ -18,12 +18,19 @@ func GetProjects(c *gin.Context) {
 }
 
 func GetProjectStats(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
-	stats, err := service.GetProjectStats(id)
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid project ID"})
 		return
 	}
+
+	stats, err := service.GetProjectStats(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not get project stats"})
+		return
+	}
+
 	c.JSON(http.StatusOK, stats)
 }
 

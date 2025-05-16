@@ -19,8 +19,21 @@ func SetupRouter() *gin.Engine {
 			connector.POST("/updateProject", handler.UpdateJiraProject)
 		}
 
-		api.GET("/compare/:taskNumber", handler.CompareTask)
-		api.GET("/compare/projects", handler.CompareAllProjects)
+		analytics := api.Group("/analytics")
+		{
+			analytics.GET("/time-open", handler.TimeOpenAnalytics)
+			analytics.GET("/status-distribution", handler.StatusDistribution)
+			analytics.GET("/time-spent", handler.TimeSpentAnalytics)
+			analytics.GET("/priority", handler.PriorityAnalytics)
+		}
+
+		compare := api.Group("/compare")
+		{
+			compare.GET("/time-open", handler.CompareTimeOpen)
+			compare.GET("/status-distribution", handler.CompareStatusDistribution)
+			compare.GET("/time-spent", handler.CompareTimeSpent)
+			compare.GET("/priority", handler.ComparePriority)
+		}
 	}
 	return r
 }

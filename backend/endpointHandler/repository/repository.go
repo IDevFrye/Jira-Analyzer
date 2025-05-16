@@ -1,10 +1,12 @@
 package repository
 
 import (
+	"fmt"
 	"github.com/endpointhandler/model"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -19,24 +21,74 @@ func InitDB() {
 }
 
 func GetAllProjects() ([]model.Project, error) {
-	var projects []model.Project
-	err := DB.Select(&projects, "SELECT * FROM Projects")
-	return projects, err
+	var dbProjects []model.DBProject
+	err := DB.Select(&dbProjects, "SELECT id, title FROM Projects")
+	if err != nil {
+		return nil, err
+	}
+
+	// Преобразование в []Project
+	var result []model.Project
+	for _, p := range dbProjects {
+		result = append(result, model.Project{
+			ID:   strconv.Itoa(p.ID), // Преобразование int → string
+			Key:  p.Title,
+			Name: p.Title,
+			Self: fmt.Sprintf("https://issues.apache.org/jira/rest/api/2/project/%d", p.ID),
+		})
+	}
+	return result, nil
 }
 
 func GetStats(projectID int) (model.ProjectStats, error) {
 	var stats model.ProjectStats
+
 	err := DB.Get(&stats.TotalIssues, "SELECT COUNT(*) FROM Issue WHERE projectId=$1", projectID)
 	if err != nil {
 		return stats, err
 	}
-	DB.Get(&stats.OpenIssues, "SELECT COUNT(*) FROM Issue WHERE projectId=$1 AND status NOT IN ('Closed','Resolved')", projectID)
-	DB.Get(&stats.ClosedIssues, "SELECT COUNT(*) FROM Issue WHERE projectId=$1 AND status='Closed'", projectID)
-	DB.Get(&stats.ReopenedIssues, "SELECT COUNT(*) FROM StatusChanges WHERE issueId IN (SELECT id FROM Issue WHERE projectId=$1) AND toStatus='Reopened'", projectID)
-	DB.Get(&stats.ResolvedIssues, "SELECT COUNT(*) FROM Issue WHERE projectId=$1 AND status='Resolved'", projectID)
-	DB.Get(&stats.InProgressIssues, "SELECT COUNT(*) FROM Issue WHERE projectId=$1 AND status='In progress'", projectID)
-	DB.Get(&stats.AvgResolutionTimeH, `SELECT COALESCE(AVG(EXTRACT(EPOCH FROM closedTime - createdTime))/3600, 0) FROM Issue WHERE projectId=$1 AND closedTime IS NOT NULL`, projectID)
-	DB.Get(&stats.AvgCreatedPerDay7d, `SELECT COUNT(*)/7.0 FROM Issue WHERE projectId=$1 AND createdTime > $2`, projectID, time.Now().AddDate(0, 0, -7))
+
+	err = DB.Get(&stats.OpenIssues, "SELECT COUNT(*) FROM Issue WHERE projectId=$1 AND status NOT IN ('Closed','Resolved')", projectID)
+	if err != nil {
+		return stats, err
+	}
+
+	err = DB.Get(&stats.ClosedIssues, "SELECT COUNT(*) FROM Issue WHERE projectId=$1 AND status='Closed'", projectID)
+	if err != nil {
+		return stats, err
+	}
+
+	err = DB.Get(&stats.ReopenedIssues, `
+		SELECT COUNT(*) FROM StatusChanges 
+		WHERE issueId IN (SELECT id FROM Issue WHERE projectId=$1) AND toStatus='Reopened'`, projectID)
+	if err != nil {
+		return stats, err
+	}
+
+	err = DB.Get(&stats.ResolvedIssues, "SELECT COUNT(*) FROM Issue WHERE projectId=$1 AND status='Resolved'", projectID)
+	if err != nil {
+		return stats, err
+	}
+
+	err = DB.Get(&stats.InProgressIssues, "SELECT COUNT(*) FROM Issue WHERE projectId=$1 AND status='In progress'", projectID)
+	if err != nil {
+		return stats, err
+	}
+
+	err = DB.Get(&stats.AvgResolutionTimeH, `
+		SELECT COALESCE(AVG(EXTRACT(EPOCH FROM closedTime - createdTime))/3600, 0) 
+		FROM Issue WHERE projectId=$1 AND closedTime IS NOT NULL`, projectID)
+	if err != nil {
+		return stats, err
+	}
+
+	err = DB.Get(&stats.AvgCreatedPerDay7d, `
+		SELECT COUNT(*) / 7.0 
+		FROM Issue WHERE projectId=$1 AND createdTime > $2`, projectID, time.Now().AddDate(0, 0, -7))
+	if err != nil {
+		return stats, err
+	}
+
 	return stats, nil
 }
 
