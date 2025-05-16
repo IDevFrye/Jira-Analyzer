@@ -34,15 +34,15 @@ func SetupRouter() *gin.Engine {
 
 		analytics := api.Group("/analytics")
 		{
-			analytics.GET("/time-open", handler.TimeOpenAnalytics)
-			analytics.GET("/status-distribution", handler.StatusDistribution)
-			analytics.GET("/time-spent", handler.TimeSpentAnalytics)
+			analytics.GET("/time-open", handler.TimeOpenAnalytics)            // param = projectKey. если ишью открыта в диапазоне дней то количество ишью на одном проекте/ range count
+			analytics.GET("/status-distribution", handler.StatusDistribution) // ля каждого статуса количество/ status count
+			analytics.GET("/time-spent", handler.TimeSpentAnalytics)          //время затраченное на проект для каждого автора
 			analytics.GET("/priority", handler.PriorityAnalytics)
 		}
 
 		compare := api.Group("/compare")
 		{
-			compare.GET("/time-open", handler.CompareTimeOpen)
+			compare.GET("/time-open", handler.CompareTimeOpen) //key
 			compare.GET("/status-distribution", handler.CompareStatusDistribution)
 			compare.GET("/time-spent", handler.CompareTimeSpent)
 			compare.GET("/priority", handler.ComparePriority)
