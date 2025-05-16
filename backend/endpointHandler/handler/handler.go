@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/endpointhandler/service"
@@ -45,12 +47,36 @@ func DeleteProject(c *gin.Context) {
 }
 
 func GetJiraProjects(c *gin.Context) {
-	projects, err := service.FetchJiraProjects()
+	// Получаем query параметры
+	limit := c.DefaultQuery("limit", "20")
+	page := c.DefaultQuery("page", "1")
+	search := c.DefaultQuery("search", "")
+
+	// Формируем URL запроса к коннектору
+	baseURL := "http://localhost:8080/api/v1/connector/projects"
+	reqURL := fmt.Sprintf("%s?limit=%s&page=%s&search=%s",
+		baseURL,
+		url.QueryEscape(limit),
+		url.QueryEscape(page),
+		url.QueryEscape(search),
+	)
+
+	// Выполняем запрос к коннектору
+	resp, err := http.Get(reqURL)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to contact connector"})
 		return
 	}
-	c.JSON(http.StatusOK, projects)
+	defer resp.Body.Close()
+
+	// Проверка статуса
+	if resp.StatusCode != http.StatusOK {
+		c.JSON(resp.StatusCode, gin.H{"error": "connector returned error"})
+		return
+	}
+
+	// Возвращаем тело ответа клиенту как есть
+	c.DataFromReader(resp.StatusCode, resp.ContentLength, resp.Header.Get("Content-Type"), resp.Body, nil)
 }
 
 func UpdateJiraProject(c *gin.Context) {

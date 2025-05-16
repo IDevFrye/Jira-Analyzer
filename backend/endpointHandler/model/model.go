@@ -12,6 +12,14 @@ type DBProject struct {
 	Title string `db:"title" json:"title"`
 }
 
+type UIProject struct {
+	ID        int    `json:"id" db:"id"` // или string, если id::text в запросе
+	Key       string `json:"key" db:"key"`
+	Name      string `json:"name" db:"name"`
+	Self      string `json:"self" db:"self"`
+	Existence bool   `json:"existence" db:"existence"`
+}
+
 type ProjectStats struct {
 	TotalIssues        int     `json:"total_issues"`
 	OpenIssues         int     `json:"open_issues"`

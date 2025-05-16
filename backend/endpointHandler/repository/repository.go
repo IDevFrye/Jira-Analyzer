@@ -7,6 +7,7 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -18,6 +19,50 @@ func InitDB() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func GetFilteredProjects(limit, offset int, search string) ([]model.UIProject, int, error) {
+	var projects []model.UIProject
+	var total int
+
+	search = strings.ToLower(search)
+	searchQuery := ""
+	args := []interface{}{}
+
+	if search != "" {
+		searchQuery = "WHERE LOWER(title) LIKE $1"
+		args = append(args, "%"+search+"%")
+	}
+
+	paramLimit := len(args) + 1
+	paramOffset := len(args) + 2
+
+	query := fmt.Sprintf(`
+        SELECT id, title AS key, title AS name, '' AS self, TRUE as existence
+        FROM Projects
+        %s
+        ORDER BY title
+        LIMIT $%d OFFSET $%d
+    `, searchQuery, paramLimit, paramOffset)
+
+	args = append(args, limit, offset)
+
+	err := DB.Select(&projects, query, args...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("select error: %w", err)
+	}
+
+	countQuery := "SELECT COUNT(*) FROM Projects"
+	if search != "" {
+		countQuery += " " + searchQuery
+	}
+
+	err = DB.Get(&total, countQuery, args[:len(args)-2]...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("count error: %w", err)
+	}
+
+	return projects, total, nil
 }
 
 func GetAllProjects() ([]model.Project, error) {
