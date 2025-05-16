@@ -2,6 +2,7 @@ package jiraservice
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"testing"
 
@@ -133,15 +134,17 @@ func TestUpdateProjects(t *testing.T) {
 func TestPushDataToDb(t *testing.T) {
 	tests := []struct {
 		name          string
-		project       string
+		project       structures.JiraProject
 		issues        []structures.JiraIssue
 		mockTransform []*datatransformer.DataTransformer
 		mockError     error
 		expectedError string
 	}{
 		{
-			name:    "success",
-			project: "TEST",
+			name: "success",
+			project: structures.JiraProject{
+				Name: "TEST",
+			},
 			issues: []structures.JiraIssue{
 				{Id: "1"},
 				{Id: "2"},
@@ -154,8 +157,10 @@ func TestPushDataToDb(t *testing.T) {
 			expectedError: "",
 		},
 		{
-			name:    "db push error",
-			project: "TEST",
+			name: "db push error",
+			project: structures.JiraProject{
+				Name: "TEST",
+			},
 			issues: []structures.JiraIssue{
 				{Id: "1"},
 			},
@@ -172,11 +177,16 @@ func TestPushDataToDb(t *testing.T) {
 			mockTransformer := new(MockDataTransformerInterface)
 			mockDbPusher := new(MockDbPusherInterface)
 
+			mockTransformer.On("TransformProjectDB", tt.project).
+				Return(structures.DBProject{Title: tt.project.Name, Url: fmt.Sprintf("/projects/%s", tt.project.Name)})
+
 			for i, issue := range tt.issues {
 				mockTransformer.On("TransformToDbIssueSet", tt.project, issue).Return(tt.mockTransform[i])
 			}
 
-			mockDbPusher.On("PushIssues", tt.project, mock.AnythingOfType("[]datatransformer.DataTransformer")).Return(tt.mockError)
+			mockDbPusher.On("PushIssues",
+				structures.DBProject{Title: tt.project.Name, Url: fmt.Sprintf("/projects/%s", tt.project.Name)},
+				mock.AnythingOfType("[]datatransformer.DataTransformer")).Return(tt.mockError)
 
 			service := JiraService{
 				dataTransformer: mockTransformer,
@@ -242,7 +252,7 @@ func TestTransformDataToDb(t *testing.T) {
 			mockTransformer := new(MockDataTransformerInterface)
 
 			for i, issue := range tt.issues {
-				mockTransformer.On("TransformToDbIssueSet", tt.project, issue).Return(tt.mockTransforms[i])
+				mockTransformer.On("TransformToDbIssueSet", structures.JiraProject{Name: tt.project}, issue).Return(tt.mockTransforms[i])
 			}
 
 			service := JiraService{
@@ -250,7 +260,7 @@ func TestTransformDataToDb(t *testing.T) {
 				log:             slog.Default(),
 			}
 
-			result := service.TransformDataToDb(tt.project, tt.issues)
+			result := service.TransformDataToDb(structures.JiraProject{Name: tt.project}, tt.issues)
 
 			assert.Equal(t, tt.expectedResult, result)
 			mockTransformer.AssertExpectations(t)

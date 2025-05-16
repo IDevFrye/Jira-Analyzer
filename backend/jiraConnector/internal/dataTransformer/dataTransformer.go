@@ -1,6 +1,7 @@
 package datatransformer
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -13,10 +14,11 @@ type DataTransformer struct {
 	Author        structures.DBAuthor
 	Assignee      structures.DBAuthor
 	StatusChanges map[string]structures.DBStatusChanges
+	baseUrl       string
 }
 
-func NewDataTransformer() *DataTransformer {
-	return &DataTransformer{}
+func NewDataTransformer(baseUrl string) *DataTransformer {
+	return &DataTransformer{baseUrl: baseUrl}
 }
 
 func (dt *DataTransformer) TransformStatusDB(jiraChanges structures.Changelog) map[string]structures.DBStatusChanges {
@@ -43,8 +45,11 @@ func (dt *DataTransformer) TransformAuthorDB(jiraAuthor structures.User) structu
 }
 
 func (dt *DataTransformer) TransformProjectDB(jiraProject structures.JiraProject) structures.DBProject {
+	url := fmt.Sprintf("%s/projects/%s", dt.baseUrl, jiraProject.Name)
+	url = strings.Replace(url, " ", "_", -1)
 	return structures.DBProject{
 		Title: jiraProject.Name,
+		Url:   url,
 	}
 }
 
@@ -68,9 +73,9 @@ func (dt *DataTransformer) TransformIssueDB(jiraIssue structures.JiraIssue) stru
 	}
 }
 
-func (dt *DataTransformer) TransformToDbIssueSet(projectName string, jiraIssue structures.JiraIssue) *DataTransformer {
+func (dt *DataTransformer) TransformToDbIssueSet(project structures.JiraProject, jiraIssue structures.JiraIssue) *DataTransformer {
 	return &DataTransformer{
-		Project:       structures.DBProject{Title: projectName},
+		Project:       dt.TransformProjectDB(project),
 		Issue:         dt.TransformIssueDB(jiraIssue),
 		Author:        dt.TransformAuthorDB(jiraIssue.Fields.Author),
 		Assignee:      dt.TransformAuthorDB(jiraIssue.Fields.Assignee),

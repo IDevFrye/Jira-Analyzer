@@ -18,6 +18,7 @@ type DBAuthor struct {
 type DBProject struct {
 	Id    int
 	Title string
+	Url   string
 }
 
 type DBIssue struct {

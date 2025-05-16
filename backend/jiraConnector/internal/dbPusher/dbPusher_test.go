@@ -34,7 +34,7 @@ func TestPushProject(t *testing.T) {
 			title: "Test Project",
 			mockQuery: func() {
 				mock.ExpectQuery("INSERT INTO projects").
-					WithArgs("Test Project").
+					WithArgs("Test Project", "").
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 			},
 			wantErr:    false,
@@ -45,7 +45,7 @@ func TestPushProject(t *testing.T) {
 			title: "Bad Project",
 			mockQuery: func() {
 				mock.ExpectQuery("INSERT INTO projects").
-					WithArgs("Bad Project").
+					WithArgs("Bad Project", "").
 					WillReturnError(fmt.Errorf("insert error"))
 			},
 			wantErr:    true,
@@ -86,10 +86,10 @@ func TestPushProjects(t *testing.T) {
 			mockSetup: func(m *sqlmock.Sqlmock) {
 				(*m).ExpectBegin()
 				(*m).ExpectQuery("INSERT INTO projects").
-					WithArgs("Project A").
+					WithArgs("Project A", "").
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 				(*m).ExpectQuery("INSERT INTO projects").
-					WithArgs("Project B").
+					WithArgs("Project B", "").
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 				(*m).ExpectCommit()
 			},
@@ -115,10 +115,10 @@ func TestPushProjects(t *testing.T) {
 			mockSetup: func(m *sqlmock.Sqlmock) {
 				(*m).ExpectBegin()
 				(*m).ExpectQuery("INSERT INTO projects").
-					WithArgs("Project A").
+					WithArgs("Project A", "").
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 				(*m).ExpectQuery("INSERT INTO projects").
-					WithArgs("Project B").
+					WithArgs("Project B", "").
 					WillReturnError(errors.New("insert error"))
 				(*m).ExpectRollback()
 			},
@@ -133,7 +133,7 @@ func TestPushProjects(t *testing.T) {
 			mockSetup: func(m *sqlmock.Sqlmock) {
 				(*m).ExpectBegin()
 				(*m).ExpectQuery("INSERT INTO projects").
-					WithArgs("Project A").
+					WithArgs("Project A", "").
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 				(*m).ExpectCommit().WillReturnError(errors.New("commit error"))
 			},
@@ -368,11 +368,11 @@ func TestPushIssue(t *testing.T) {
 			issue:   testIssue,
 			mockSetup: func(m *sqlmock.Sqlmock) {
 				// Mock getProjectId - сначала SELECT возвращает 0, потом INSERT
-				(*m).ExpectQuery(`SELECT id FROM projects WHERE title=\$1`).
-					WithArgs("Project1").
-					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(0))
-				(*m).ExpectQuery(regexp.QuoteMeta(`INSERT INTO projects (title) VALUES ($1) ON CONFLICT (title) DO NOTHING RETURNING id`)).
-					WithArgs("Project1").
+				//(*m).ExpectQuery(`SELECT id FROM projects WHERE title=\$1`).WithArgs("Project1").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(0))
+				(*m).ExpectQuery(regexp.QuoteMeta(`
+					INSERT INTO projects (title, url) VALUES ($1, $2) 
+					ON CONFLICT (title) DO NOTHING RETURNING id`)).
+					WithArgs("Project1", "").
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 
 				// Mock getAuthorId (author) - сначала SELECT возвращает 0, потом INSERT
@@ -393,26 +393,26 @@ func TestPushIssue(t *testing.T) {
 
 				// Mock insert issue
 				(*m).ExpectQuery(regexp.QuoteMeta(`
-                    INSERT INTO issue 
-                        (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent)
-                    VALUES 
-                        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-                    ON CONFLICT (key)
-                    DO UPDATE SET
-                        projectId = EXCLUDED.projectId, 
-                        authorId = EXCLUDED.authorId, 
-                        assigneeId = EXCLUDED.assigneeId, 
-                        summary = EXCLUDED.summary, 
-                        description = EXCLUDED.description, 
-                        type = EXCLUDED.type, 
-                        priority = EXCLUDED.priority, 
-                        status = EXCLUDED.status, 
-                        createdTime = EXCLUDED.createdTime, 
-                        closedTime = EXCLUDED.closedTime, 
-                        updatedTime = EXCLUDED.updatedTime, 
-                        timeSpent = EXCLUDED.timeSpent
-                    RETURNING id
-                `)).
+                   INSERT INTO issue
+                       (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent)
+                   VALUES
+                       ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                   ON CONFLICT (key)
+                   DO UPDATE SET
+                       projectId = EXCLUDED.projectId,
+                       authorId = EXCLUDED.authorId,
+                       assigneeId = EXCLUDED.assigneeId,
+                       summary = EXCLUDED.summary,
+                       description = EXCLUDED.description,
+                       type = EXCLUDED.type,
+                       priority = EXCLUDED.priority,
+                       status = EXCLUDED.status,
+                       createdTime = EXCLUDED.createdTime,
+                       closedTime = EXCLUDED.closedTime,
+                       updatedTime = EXCLUDED.updatedTime,
+                       timeSpent = EXCLUDED.timeSpent
+                   RETURNING id
+               `)).
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(100))
 			},
 			expectedId: 100,
@@ -423,7 +423,11 @@ func TestPushIssue(t *testing.T) {
 			issue:   testIssue,
 			mockSetup: func(m *sqlmock.Sqlmock) {
 				// Project уже существует
-				(*m).ExpectQuery(`SELECT id FROM projects WHERE title=\$1`).WithArgs("Project1").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+				(*m).ExpectQuery(regexp.QuoteMeta(`
+					INSERT INTO projects (title, url) VALUES ($1, $2) 
+					ON CONFLICT (title) DO NOTHING RETURNING id`)).
+					WithArgs("Project1", "").
+					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 
 				// Авторы не существуют
 				// Mock getAuthorId (author) - сначала SELECT возвращает 0, потом INSERT
@@ -447,11 +451,11 @@ func TestPushIssue(t *testing.T) {
 			},
 			mockSetup: func(m *sqlmock.Sqlmock) {
 				// Project не найден
-				(*m).ExpectQuery(`SELECT id FROM projects WHERE title=\$1`).
-					WithArgs("Project1").
-					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(0))
-				(*m).ExpectQuery(regexp.QuoteMeta(`INSERT INTO projects (title) VALUES ($1) ON CONFLICT (title) DO NOTHING RETURNING id`)).
-					WithArgs("Project1").
+				//(*m).ExpectQuery(`SELECT id FROM projects WHERE title=\$1`).WithArgs("Project1").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(0))
+				(*m).ExpectQuery(regexp.QuoteMeta(`
+					INSERT INTO projects (title, url) VALUES ($1, $2) 
+					ON CONFLICT (title) DO NOTHING RETURNING id`)).
+					WithArgs("Project1", "").
 					WillReturnError(myerr.ErrInsertProject)
 			},
 			expectedError: myerr.ErrSelectProject,
@@ -465,8 +469,10 @@ func TestPushIssue(t *testing.T) {
 			},
 			mockSetup: func(m *sqlmock.Sqlmock) {
 				// Project успешно находится
-				(*m).ExpectQuery("SELECT id FROM projects WHERE title=\\$1").
-					WithArgs("Project1").
+				(*m).ExpectQuery(regexp.QuoteMeta(`
+					INSERT INTO projects (title, url) VALUES ($1, $2) 
+					ON CONFLICT (title) DO NOTHING RETURNING id`)).
+					WithArgs("Project1", "").
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 
 				// Author не найден и ошибка при вставке
@@ -492,8 +498,10 @@ func TestPushIssue(t *testing.T) {
 			},
 			mockSetup: func(m *sqlmock.Sqlmock) {
 				// Project успешно находится
-				(*m).ExpectQuery("SELECT id FROM projects WHERE title=\\$1").
-					WithArgs("Project1").
+				(*m).ExpectQuery(regexp.QuoteMeta(`
+					INSERT INTO projects (title, url) VALUES ($1, $2) 
+					ON CONFLICT (title) DO NOTHING RETURNING id`)).
+					WithArgs("Project1", "").
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 
 				// Author успешно находится/вставляется
@@ -527,7 +535,7 @@ func TestPushIssue(t *testing.T) {
 			}
 
 			dbp := &DbPusher{db: db, log: slog.Default()}
-			id, err := dbp.PushIssue(tt.project, tt.issue)
+			id, err := dbp.PushIssue(structures.DBProject{Title: tt.project}, tt.issue)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -625,11 +633,10 @@ func TestPushIssues(t *testing.T) {
 				(*m).ExpectBegin()
 
 				// First issue
-				(*m).ExpectQuery(`SELECT id FROM projects WHERE title=\$1`).
-					WithArgs("Project1").
-					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(0))
-				(*m).ExpectQuery(regexp.QuoteMeta(`INSERT INTO projects (title) VALUES ($1) ON CONFLICT (title) DO NOTHING RETURNING id`)).
-					WithArgs("Project1").
+				(*m).ExpectQuery(regexp.QuoteMeta(`
+					INSERT INTO projects (title, url) VALUES ($1, $2) 
+					ON CONFLICT (title) DO NOTHING RETURNING id`)).
+					WithArgs("Project1", "").
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 
 				// Author queries for first issue
@@ -668,8 +675,10 @@ func TestPushIssues(t *testing.T) {
 				}
 
 				// Second issue - project already exists
-				(*m).ExpectQuery(`SELECT id FROM projects WHERE title=\$1`).
-					WithArgs("Project1").
+				(*m).ExpectQuery(regexp.QuoteMeta(`
+					INSERT INTO projects (title, url) VALUES ($1, $2) 
+					ON CONFLICT (title) DO NOTHING RETURNING id`)).
+					WithArgs("Project1", "").
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 
 				// Authors already exist for second issue
@@ -719,8 +728,10 @@ func TestPushIssues(t *testing.T) {
 			issues:  testIssues,
 			mockSetup: func(m *sqlmock.Sqlmock) {
 				(*m).ExpectBegin()
-				(*m).ExpectQuery("SELECT id FROM projects WHERE title=\\$1").
-					WithArgs("Project1").
+				(*m).ExpectQuery(regexp.QuoteMeta(`
+					INSERT INTO projects (title, url) VALUES ($1, $2) 
+					ON CONFLICT (title) DO NOTHING RETURNING id`)).
+					WithArgs("Project1", "").
 					WillReturnError(errors.New("project error"))
 				(*m).ExpectRollback()
 			},
@@ -736,8 +747,8 @@ func TestPushIssues(t *testing.T) {
 				(*m).ExpectQuery(`SELECT id FROM projects WHERE title=\$1`).
 					WithArgs("Project1").
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(0))
-				(*m).ExpectQuery(regexp.QuoteMeta(`INSERT INTO projects (title) VALUES ($1) ON CONFLICT (title) DO NOTHING RETURNING id`)).
-					WithArgs("Project1").
+				(*m).ExpectQuery(regexp.QuoteMeta(`INSERT INTO projects (title, url) VALUES ($1, $2) ON CONFLICT (title) DO NOTHING RETURNING id`)).
+					WithArgs("Project1", "").
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 
 				// Author queries for first issue
@@ -788,7 +799,7 @@ func TestPushIssues(t *testing.T) {
 			}
 
 			dbp := &DbPusher{db: db, log: slog.Default()}
-			err = dbp.PushIssues(tt.project, tt.issues)
+			err = dbp.PushIssues(structures.DBProject{Title: tt.project}, tt.issues)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)

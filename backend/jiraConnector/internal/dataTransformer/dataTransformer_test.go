@@ -93,7 +93,7 @@ func TestTransformStatusDB(t *testing.T) {
 		},
 	}
 
-	dt := NewDataTransformer()
+	dt := NewDataTransformer("base_url")
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -121,7 +121,7 @@ func TestTransformAuthorDB(t *testing.T) {
 		},
 	}
 
-	dt := NewDataTransformer()
+	dt := NewDataTransformer("base_url")
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -140,16 +140,16 @@ func TestTransformProjectDB(t *testing.T) {
 		{
 			name:     "regular project",
 			input:    structures.JiraProject{Name: "Project X"},
-			expected: structures.DBProject{Title: "Project X"},
+			expected: structures.DBProject{Title: "Project X", Url: "/projects/Project_X"},
 		},
 		{
 			name:     "empty project",
 			input:    structures.JiraProject{},
-			expected: structures.DBProject{},
+			expected: structures.DBProject{Url: "/projects/"},
 		},
 	}
 
-	dt := NewDataTransformer()
+	dt := NewDataTransformer("")
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -219,7 +219,7 @@ func TestTransformIssueDB(t *testing.T) {
 		},
 	}
 
-	dt := NewDataTransformer()
+	dt := NewDataTransformer("base_url")
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -259,7 +259,7 @@ func TestTransformToDbIssueSet(t *testing.T) {
 	}
 
 	expected := &DataTransformer{
-		Project: structures.DBProject{Title: "TestProject"},
+		Project: structures.DBProject{Title: "TestProject", Url: "base_url/projects/TestProject"},
 		Issue: structures.DBIssue{
 			Key:         "PRJ-123",
 			Summary:     "Test issue",
@@ -276,8 +276,8 @@ func TestTransformToDbIssueSet(t *testing.T) {
 		},
 	}
 
-	dt := NewDataTransformer()
-	result := dt.TransformToDbIssueSet("TestProject", inputIssue)
+	dt := NewDataTransformer("base_url")
+	result := dt.TransformToDbIssueSet(structures.JiraProject{Name: "TestProject"}, inputIssue)
 
 	assert.Equal(t, expected.Project, result.Project)
 	assert.Equal(t, expected.Issue.Key, result.Issue.Key)

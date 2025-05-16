@@ -96,7 +96,7 @@ func (_c *MockJiraServiceInterface_GetProjectsPage_Call) RunAndReturn(run func(s
 }
 
 // PushDataToDb provides a mock function for the type MockJiraServiceInterface
-func (_mock *MockJiraServiceInterface) PushDataToDb(project string, issues []structures.JiraIssue) error {
+func (_mock *MockJiraServiceInterface) PushDataToDb(project structures.JiraProject, issues []structures.JiraIssue) error {
 	ret := _mock.Called(project, issues)
 
 	if len(ret) == 0 {
@@ -104,7 +104,7 @@ func (_mock *MockJiraServiceInterface) PushDataToDb(project string, issues []str
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(string, []structures.JiraIssue) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(structures.JiraProject, []structures.JiraIssue) error); ok {
 		r0 = returnFunc(project, issues)
 	} else {
 		r0 = ret.Error(0)
@@ -124,9 +124,9 @@ func (_e *MockJiraServiceInterface_Expecter) PushDataToDb(project interface{}, i
 	return &MockJiraServiceInterface_PushDataToDb_Call{Call: _e.mock.On("PushDataToDb", project, issues)}
 }
 
-func (_c *MockJiraServiceInterface_PushDataToDb_Call) Run(run func(project string, issues []structures.JiraIssue)) *MockJiraServiceInterface_PushDataToDb_Call {
+func (_c *MockJiraServiceInterface_PushDataToDb_Call) Run(run func(project structures.JiraProject, issues []structures.JiraIssue)) *MockJiraServiceInterface_PushDataToDb_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].([]structures.JiraIssue))
+		run(args[0].(structures.JiraProject), args[1].([]structures.JiraIssue))
 	})
 	return _c
 }
@@ -136,13 +136,13 @@ func (_c *MockJiraServiceInterface_PushDataToDb_Call) Return(err error) *MockJir
 	return _c
 }
 
-func (_c *MockJiraServiceInterface_PushDataToDb_Call) RunAndReturn(run func(project string, issues []structures.JiraIssue) error) *MockJiraServiceInterface_PushDataToDb_Call {
+func (_c *MockJiraServiceInterface_PushDataToDb_Call) RunAndReturn(run func(project structures.JiraProject, issues []structures.JiraIssue) error) *MockJiraServiceInterface_PushDataToDb_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // TransformDataToDb provides a mock function for the type MockJiraServiceInterface
-func (_mock *MockJiraServiceInterface) TransformDataToDb(project string, issues []structures.JiraIssue) []datatransformer.DataTransformer {
+func (_mock *MockJiraServiceInterface) TransformDataToDb(project structures.JiraProject, issues []structures.JiraIssue) []datatransformer.DataTransformer {
 	ret := _mock.Called(project, issues)
 
 	if len(ret) == 0 {
@@ -150,7 +150,7 @@ func (_mock *MockJiraServiceInterface) TransformDataToDb(project string, issues 
 	}
 
 	var r0 []datatransformer.DataTransformer
-	if returnFunc, ok := ret.Get(0).(func(string, []structures.JiraIssue) []datatransformer.DataTransformer); ok {
+	if returnFunc, ok := ret.Get(0).(func(structures.JiraProject, []structures.JiraIssue) []datatransformer.DataTransformer); ok {
 		r0 = returnFunc(project, issues)
 	} else {
 		if ret.Get(0) != nil {
@@ -172,9 +172,9 @@ func (_e *MockJiraServiceInterface_Expecter) TransformDataToDb(project interface
 	return &MockJiraServiceInterface_TransformDataToDb_Call{Call: _e.mock.On("TransformDataToDb", project, issues)}
 }
 
-func (_c *MockJiraServiceInterface_TransformDataToDb_Call) Run(run func(project string, issues []structures.JiraIssue)) *MockJiraServiceInterface_TransformDataToDb_Call {
+func (_c *MockJiraServiceInterface_TransformDataToDb_Call) Run(run func(project structures.JiraProject, issues []structures.JiraIssue)) *MockJiraServiceInterface_TransformDataToDb_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].([]structures.JiraIssue))
+		run(args[0].(structures.JiraProject), args[1].([]structures.JiraIssue))
 	})
 	return _c
 }
@@ -184,7 +184,7 @@ func (_c *MockJiraServiceInterface_TransformDataToDb_Call) Return(dataTransforme
 	return _c
 }
 
-func (_c *MockJiraServiceInterface_TransformDataToDb_Call) RunAndReturn(run func(project string, issues []structures.JiraIssue) []datatransformer.DataTransformer) *MockJiraServiceInterface_TransformDataToDb_Call {
+func (_c *MockJiraServiceInterface_TransformDataToDb_Call) RunAndReturn(run func(project structures.JiraProject, issues []structures.JiraIssue) []datatransformer.DataTransformer) *MockJiraServiceInterface_TransformDataToDb_Call {
 	_c.Call.Return(run)
 	return _c
 }
