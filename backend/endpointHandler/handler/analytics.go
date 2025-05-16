@@ -7,37 +7,41 @@ import (
 )
 
 func TimeOpenAnalytics(c *gin.Context) {
-	projectKey := c.Query("key")
-	if projectKey == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing project key"})
+	key := c.Query("key")
+	if key == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "project key is required"})
 		return
 	}
 
 	var result []struct {
-		Range string `db:"range" json:"range"`
-		Count int    `db:"count" json:"count"`
+		Range string `json:"range"`
+		Count int    `json:"count"`
 	}
 
 	err := repository.DB.Select(&result, `
-		SELECT CASE
-			WHEN now() - i.created <= interval '1 day' THEN '0-1'
-			WHEN now() - i.created <= interval '2 days' THEN '1-2'
-			WHEN now() - i.created <= interval '3 days' THEN '2-3'
-			WHEN now() - i.created <= interval '5 days' THEN '3-5'
-			WHEN now() - i.created <= interval '7 days' THEN '5-7'
-			WHEN now() - i.created <= interval '10 days' THEN '7-10'
-			WHEN now() - i.created <= interval '14 days' THEN '10-14'
-			WHEN now() - i.created <= interval '21 days' THEN '14-21'
-			WHEN now() - i.created <= interval '30 days' THEN '21-30'
-			ELSE '30+'
-		END AS range,
-		COUNT(*) AS count
-		FROM Issue i
-		JOIN Projects p ON i.projectId = p.id
-		WHERE p.key = $1 AND i.status NOT IN ('Closed', 'Resolved')
+		SELECT
+			CASE
+				WHEN age <= 1 THEN '0-1'
+				WHEN age <= 2 THEN '1-2'
+				WHEN age <= 3 THEN '2-3'
+				WHEN age <= 5 THEN '3-5'
+				WHEN age <= 7 THEN '5-7'
+				WHEN age <= 10 THEN '7-10'
+				WHEN age <= 14 THEN '10-14'
+				WHEN age <= 21 THEN '14-21'
+				WHEN age <= 30 THEN '21-30'
+				ELSE '30+'
+			END AS range,
+			COUNT(*) AS count
+		FROM (
+			SELECT DATE_PART('day', NOW() - i.createdTime) AS age
+			FROM Projects p
+			JOIN Issue i ON p.id = i.projectId
+			WHERE i.status NOT IN ('Closed', 'Resolved') AND p.title = $1
+		) sub
 		GROUP BY range
-		ORDER BY MIN(i.created)
-	`, projectKey)
+		ORDER BY MIN(age)
+	`, key)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -47,25 +51,25 @@ func TimeOpenAnalytics(c *gin.Context) {
 }
 
 func StatusDistribution(c *gin.Context) {
-	projectKey := c.Query("key")
-	if projectKey == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing project key"})
+	key := c.Query("key")
+	if key == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "project key is required"})
 		return
 	}
 
 	var result []struct {
-		Status string `db:"status" json:"status"`
-		Count  int    `db:"count" json:"count"`
+		Status string `json:"status"`
+		Count  int    `json:"count"`
 	}
 
 	err := repository.DB.Select(&result, `
 		SELECT i.status, COUNT(*) AS count
-		FROM Issue i
-		JOIN Projects p ON i.projectId = p.id
-		WHERE p.key = $1
+		FROM Projects p
+		JOIN Issue i ON p.id = i.projectId
+		WHERE p.title = $1
 		GROUP BY i.status
 		ORDER BY i.status
-	`, projectKey)
+	`, key)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -77,48 +81,56 @@ func StatusDistribution(c *gin.Context) {
 func TimeSpentAnalytics(c *gin.Context) {
 	projectKey := c.Query("key")
 	if projectKey == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing project key"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "missing project key"})
 		return
 	}
 
-	var result struct {
-		TotalTime float64 `db:"total_time" json:"total_time"`
+	var result []struct {
+		Author         string `db:"author" json:"author"`
+		TotalTimeSpent int    `db:"total_time_spent" json:"total_time_spent"`
 	}
 
-	err := repository.DB.Get(&result, `
-		SELECT SUM(i.timeSpent) AS total_time
-		FROM Issue i
-		JOIN Projects p ON i.projectId = p.id
-		WHERE p.key = $1 AND i.timeSpent IS NOT NULL
+	err := repository.DB.Select(&result, `
+		SELECT 
+			a.name AS author,
+			SUM(i.timeSpent) AS total_time_spent
+		FROM Projects p
+		JOIN Issue i ON p.id = i.projectId
+		JOIN Author a ON a.id = i.authorId
+		WHERE p.title = $1
+		  AND i.timeSpent IS NOT NULL
+		GROUP BY a.name
+		ORDER BY total_time_spent DESC;
 	`, projectKey)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, result)
 }
 
 func PriorityAnalytics(c *gin.Context) {
-	projectKey := c.Query("key")
-	if projectKey == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing project key"})
+	key := c.Query("key")
+	if key == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "project key is required"})
 		return
 	}
 
 	var result []struct {
-		Priority string `db:"priority" json:"priority"`
-		Count    int    `db:"count" json:"count"`
+		Priority string `json:"priority"`
+		Count    int    `json:"count"`
 	}
 
 	err := repository.DB.Select(&result, `
 		SELECT i.priority, COUNT(*) AS count
-		FROM Issue i
-		JOIN Projects p ON i.projectId = p.id
-		WHERE p.key = $1
+		FROM Projects p
+		JOIN Issue i ON p.id = i.projectId
+		WHERE p.title = $1
 		GROUP BY i.priority
 		ORDER BY i.priority
-	`, projectKey)
+	`, key)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
