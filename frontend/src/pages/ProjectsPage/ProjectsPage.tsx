@@ -6,15 +6,6 @@ import { FiSearch, FiFolder, FiX } from 'react-icons/fi';
 import './ProjectsPage.scss';
 import { config } from '../../config/config';
 
-interface ApiResponse {
-  Projects?: Project[];
-  PageInfo?: {
-    pageCount: number;
-    currentPage: number;
-    projectsCount: number;
-  };
-}
-
 const ProjectsPage: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [search, setSearch] = useState('');
@@ -22,93 +13,87 @@ const ProjectsPage: React.FC = () => {
   const [pageCount, setPageCount] = useState(1);
   const [loading, setLoading] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-const [addedProjects, setAddedProjects] = useState<Set<string>>(() => {
-  const saved = localStorage.getItem('addedProjects');
-  return saved ? new Set(JSON.parse(saved)) : new Set();
-});
+  const [addedProjects, setAddedProjects] = useState<Set<string>>(new Set());
 
-useEffect(() => {
-  localStorage.setItem('addedProjects', JSON.stringify(Array.from(addedProjects)));
-}, [addedProjects]);
-  
-  const handleToggleAdd = (key: string, isAdded: boolean) => {
-    setAddedProjects(prev => {
-      const newSet = new Set(prev);
-      if (isAdded) {
-        newSet.add(key);
-      } else {
-        newSet.delete(key);
-      }
-      return newSet;
-    });
-  };
-
-
+  // Загрузка проектов
   useEffect(() => {
-    setLoading(true);
-    
-    axios
-      .get(config.api.endpoints.connectorProjects, {
-        params: { page, limit: 9, search },
-      })
-      .then((res) => {
-        const { projects, pageInfo } = res.data;
-        
-        if (!projects) {
-          throw new Error("No projects data received");
-        }
+    const fetchProjects = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(config.api.endpoints.connectorProjects, {
+          params: { page, limit: 9, search },
+        });
 
-        const formattedProjects = projects.map((p: any) => ({
+        const formattedProjects = res.data?.projects?.map((p: any) => ({
           Id: p.id,
           Key: p.key,
           Name: p.name,
           self: p.self
-        }));
+        })) || [];
 
         setProjects(formattedProjects);
-        setPageCount(pageInfo?.pageCount || 1);
-        setLoading(false);
-      })
-      .catch((error) => {
+        setPageCount(res.data?.pageInfo?.pageCount || 1);
+      } catch (error) {
         console.error("Error fetching projects:", error);
-        setLoading(false);
         setProjects([]);
-        setPageCount(1);
-      });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
   }, [page, search]);
 
-  const handleClearSearch = () => {
-    setSearch('');
-  };
-
-  const handleUpdate = async () => {
-    try {
-      const res = await axios.get(config.api.endpoints.connectorProjects, {
-        params: { page, limit: 9, search },
-      });
-  
-      if (!res.data?.projects) {
-        throw new Error("Invalid projects data received");
+  // Загрузка добавленных проектов
+  useEffect(() => {
+    const fetchAddedProjects = async () => {
+      try {
+        const res = await axios.get(config.api.endpoints.projects);
+        // Явно указываем тип для данных
+        const addedKeys = new Set<string>(res.data.map((p: { key: string }) => p.key));
+        setAddedProjects(addedKeys);
+      } catch (error) {
+        console.error("Error fetching added projects:", error);
       }
+    };
   
-      const formattedProjects = res.data.projects.map((p: any) => ({
-        Id: p.id,
-        Key: p.key,
-        Name: p.name,
-        self: p.self,
-      }));
+    fetchAddedProjects();
+  }, []);
+
+  // Обработчик действий с проектом
+  const handleProjectAction = async (projectKey: string, action: 'add' | 'remove') => {
+    try {
+      if (action === 'remove') {
+        const { data } = await axios.get<Array<{ id: string; key: string }>>(config.api.endpoints.projects);
+        const projectToDelete = data.find((p) => p.key === projectKey);
+        
+        if (projectToDelete) {
+          await axios.delete(config.api.endpoints.deleteProject(Number(projectToDelete.id)));
+        }
   
-      const addedRes = await axios.get(config.api.endpoints.projects);
-      const addedKeys = new Set<string>(addedRes.data.map((p: any) => p.key as string)); 
-  
-      setProjects(formattedProjects);
-      setPageCount(res.data.pageInfo?.pageCount || 1);
-      setAddedProjects(addedKeys);
+        setAddedProjects(prev => {
+          const newSet = new Set<string>(prev); // Явно указываем тип Set<string>
+          newSet.delete(projectKey);
+          return newSet;
+        });
+      } else {
+        await axios.post(
+          config.api.endpoints.updateProject,
+          null,
+          { params: { project: projectKey } }
+        );
+        setAddedProjects(prev => new Set<string>(prev).add(projectKey)); // Явно указываем тип
+      }
     } catch (error) {
-      console.error("Update error:", error);
-      alert("Не удалось обновить данные. Пожалуйста, попробуйте позже.");
+      console.error('Action failed:', error);
+      alert(`Не удалось ${action === 'add' ? 'добавить' : 'удалить'} проект`);
+      // Принудительно обновляем состояние с явным указанием типа
+      const { data } = await axios.get<Array<{ key: string }>>(config.api.endpoints.projects);
+      setAddedProjects(new Set<string>(data.map(p => p.key)));
     }
   };
+
+  const handleClearSearch = () => setSearch('');
 
   return (
     <div className="projects-container">
@@ -121,7 +106,10 @@ useEffect(() => {
             className="projects-search"
             placeholder="Поиск проектов..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1)
+            }}
             onFocus={() => setIsSearchFocused(true)}
             onBlur={() => setIsSearchFocused(false)}
           />
@@ -132,7 +120,7 @@ useEffect(() => {
           )}
         </div>
       </div>
-      
+
       {loading ? (
         <div className="loading-state">
           <div className="loading-spinner"></div>
@@ -163,25 +151,24 @@ useEffect(() => {
       ) : (
         <>
           <div className="projects-grid">
-            
-          {projects.map((p) => (
-            <ProjectCard
-              key={p.Id}
-              Id={p.Id}
-              Name={p.Name}
-              Key={p.Key}
-              self={p.self}
-              onUpdate={handleUpdate}
-              isAdded={addedProjects.has(p.Key)}
-            />
+            {projects.map((project) => (
+              <ProjectCard
+                key={project.Id}
+                Id={project.Id}
+                Key={project.Key}
+                Name={project.Name}
+                self={project.self}
+                isAdded={addedProjects.has(project.Key)}
+                onAction={handleProjectAction}
+              />
             ))}
           </div>
-          
+
           <div className="projects-pagination">
             <button 
               className="pagination-button" 
               disabled={page === 1} 
-              onClick={() => {setPage(page - 1);}}
+              onClick={() => setPage(page - 1)}
             >
               &larr; Назад
             </button>
@@ -199,5 +186,4 @@ useEffect(() => {
     </div>
   );
 };
-
 export default ProjectsPage;
