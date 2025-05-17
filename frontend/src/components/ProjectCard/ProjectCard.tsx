@@ -1,50 +1,32 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { Project } from '../../types/models';
 import './ProjectCard.scss';
 import { config } from '../../config/config';
 
-interface ProjectCardProps extends Project {
-  onUpdate: () => void;
-  isAdded: boolean;
+interface ProjectCardProps {
   Id: number;
-  Name: string; 
-  Key: string; 
+  Key: string;
+  Name: string;
   self: string;
+  isAdded: boolean;
+  onAction: (key: string, action: 'add' | 'remove') => Promise<void>;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ 
-  Id, Name, Key, self, onUpdate, isAdded 
+const ProjectCard: React.FC<ProjectCardProps> = ({
+  Id,
+  Key,
+  Name,
+  self,
+  isAdded,
+  onAction
 }) => {
   const [loading, setLoading] = useState(false);
 
-  const handleAction = async () => {
-    console.log(self)
+  const handleButtonClick = async () => {
     setLoading(true);
     try {
-      if (isAdded) {
-        const response = await axios.get(config.api.endpoints.projects);
-        const projectsFromServer = response.data; // Предполагаем, что это массив проектов вида { id: string, key: string, ... }
-  
-        const projectToDelete = projectsFromServer.find((p: any) => p.key === Key);
-        
-        if (!projectToDelete) {
-          throw new Error("Проект не найден на сервере");
-        }
-  
-        await axios.delete(config.api.endpoints.deleteProject(projectToDelete.id));
-      } else {
-        await axios.post(
-          config.api.endpoints.updateProject,
-          null,
-          { params: { project: Key } }
-        );
-      }
-      onUpdate();
-      console.log(self)
+      await onAction(Key, isAdded ? 'remove' : 'add');
     } catch (error) {
-      console.error('Error:', error);
-      alert(`Не удалось ${isAdded ? 'удалить' : 'добавить'} проект`);
+      console.error('Action failed:', error);
     } finally {
       setLoading(false);
     }
@@ -56,21 +38,21 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
         <h3 className="project-name">{Name}</h3>
         <span className="project-key">{Key}</span>
         <div className="project-footer">
-          <a 
-            href={self || "#"} 
-            target="_blank" 
+          <a
+            href={self || '#'}
+            target="_blank"
             rel="noopener noreferrer"
             className="project-link"
           >
             Перейти
           </a>
-          <button 
-            onClick={handleAction}
+          <button
             className={`project-action-button ${isAdded ? 'remove' : 'add'}`}
+            onClick={handleButtonClick}
             disabled={loading}
           >
             {loading ? (
-              'Загрузка...'
+              '...'
             ) : isAdded ? (
               'Удалить'
             ) : (

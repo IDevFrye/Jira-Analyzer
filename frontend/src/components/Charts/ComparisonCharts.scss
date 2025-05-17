@@ -2,7 +2,7 @@
 
 .comparison {
   &-chart {
-    width: 60%;
+    width: 90%;
     height: 400px;
     position: relative;
   }
@@ -21,4 +21,10 @@
   text-align: center;
   padding: v.$spacing-xl;
   color: v.$text-secondary;
+}
+
+.comparison-chart-pie {
+  width: 40%;
+    height: 400px;
+    position: relative;
 }

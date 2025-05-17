@@ -164,9 +164,11 @@ const StatsCard: React.FC<StatsCardProps> = ({ projectId, projectName, projectKe
             <div className="time-visualization">
               <GiSandsOfTime className="time-icon" />
               <div className="time-value-container">
-                <span className="time-value">
-                  {formatTime(stats.avg_resolution_time_h)}
-                </span>
+              <span className="time-value">
+                {Math.abs(stats.avg_resolution_time_h) >= 1000
+                  ? `${Math.sign(stats.avg_resolution_time_h) === -1 ? '-' : ''}${Math.floor(Math.abs(stats.avg_resolution_time_h) / 1000)}K`
+                  : Math.floor(stats.avg_resolution_time_h)}
+              </span>
                 <span className="time-label">часов</span>
               </div>
             </div>
@@ -175,12 +177,14 @@ const StatsCard: React.FC<StatsCardProps> = ({ projectId, projectName, projectKe
               <span className="stat-details">на задачу</span>
             </div>
           </div>
-          
+
           <div className="stat-item highlight calendar-card">
             <div className="calendar-visualization">
               <FaCalendarAlt className="calendar-icon" />
               <span className="calendar-value">
-                {stats.avg_created_per_day_7d ?? 0}
+                {typeof stats.avg_created_per_day_7d === 'number'
+                  ? stats.avg_created_per_day_7d.toFixed(1)
+                  : '0.0'}
               </span>
             </div>
             <div className="stat-info">

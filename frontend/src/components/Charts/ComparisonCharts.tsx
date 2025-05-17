@@ -133,9 +133,14 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({
   };
 
   return (
-    <div className="comparison-chart">
+    (type === 'doughnut' || type === 'pie')  ?
+    (<div className="comparison-chart-pie">
+      {renderChart()}
+    </div>) : (
+      <div className="comparison-chart">
       {renderChart()}
     </div>
+    )
   );
 };
 
