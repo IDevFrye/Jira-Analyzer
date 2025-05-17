@@ -1,10 +1,11 @@
 package router
 
 import (
+	"time"
+
 	"github.com/endpointhandler/handler"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"time"
 )
 
 func SetupRouter() *gin.Engine {
@@ -12,7 +13,7 @@ func SetupRouter() *gin.Engine {
 
 	// ✅ Добавляем CORS
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"}, // Разрешённые домены
+		AllowOrigins:     []string{"http://localhost:3000", "http://frontend:3000"}, // Разрешённые домены
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
 		ExposeHeaders:    []string{"Content-Length"},

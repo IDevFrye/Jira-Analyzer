@@ -53,7 +53,7 @@ func GetJiraProjects(c *gin.Context) {
 	search := c.DefaultQuery("search", "")
 
 	// Формируем URL запроса к коннектору
-	baseURL := "http://localhost:8080/api/v1/connector/projects"
+	baseURL := "http://jiraconnector:8080/api/v1/connector/projects"
 	reqURL := fmt.Sprintf("%s?limit=%s&page=%s&search=%s",
 		baseURL,
 		url.QueryEscape(limit),

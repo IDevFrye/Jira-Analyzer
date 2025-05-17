@@ -3,13 +3,14 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/endpointhandler/model"
 	"github.com/endpointhandler/repository"
-	"net/http"
 )
 
 func FetchJiraProjects() ([]model.Project, error) {
-	resp, err := http.Get("http://localhost:8080/api/v1/connector/projects")
+	resp, err := http.Get("http://jiraconnector:8080/api/v1/connector/projects")
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +24,7 @@ func FetchJiraProjects() ([]model.Project, error) {
 }
 
 func UpdateJiraProject(project string) (map[string]string, error) {
-	url := fmt.Sprintf("http://localhost:8080/api/v1/connector/updateProject?project=%s", project)
+	url := fmt.Sprintf("http://jiraconnector:8080/api/v1/connector/updateProject?project=%s", project)
 	resp, err := http.Post(url, "application/json", nil)
 	if err != nil {
 		return nil, err

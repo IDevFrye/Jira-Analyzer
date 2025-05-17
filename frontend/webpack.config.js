@@ -63,17 +63,17 @@ module.exports = {
     }),
     new Dotenv(), // Добавляем поддержку .env файлов
     new webpack.DefinePlugin({
-      'process.env.REACT_APP_API_BASE_URL': JSON.stringify(process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000')
+      'process.env.REACT_APP_API_BASE_URL': JSON.stringify(process.env.REACT_APP_API_BASE_URL || '/api')
     })
   ],
   devServer: {
-    port: 3000,
+    port: 80,
     hot: true,
     open: true,
     historyApiFallback: true,
     proxy: [{
       context: ['/api'],
-      target: 'http://localhost:8000',
+      target: 'http://backend:8000',
       changeOrigin: true,
       secure: false
     }]

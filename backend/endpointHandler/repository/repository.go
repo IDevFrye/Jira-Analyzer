@@ -16,7 +16,7 @@ var DB *sqlx.DB
 
 func InitDB() {
 	var err error
-	DB, err = sqlx.Connect("postgres", "user=postgres password=00000 dbname=jira port=5432 sslmode=disable")
+	DB, err = sqlx.Connect("postgres", "host=postgres user=postgres password=jiradb dbname=testdb port=5432 sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -9,6 +9,6 @@ COPY . .
 
 RUN go build -o jiraConnector ./cmd/service
 
-EXPOSE 8082
+EXPOSE 8080
 
 CMD ["./jiraConnector"]

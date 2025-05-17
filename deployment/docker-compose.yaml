@@ -1,0 +1,71 @@
+version: '3.9'
+
+services:
+
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "15432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
+
+    networks:
+      - jiraApp
+
+  jiraconnector:
+    build:
+      context: ../backend/jiraConnector
+      dockerfile: ./cmd/Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      - CONFIG_PATH=${CONFIG_PATH}
+    ports:
+      - "8080:8080"
+    
+    networks:
+      - jiraApp
+
+    
+  backend:
+    restart: always
+    build:
+      context: ../backend/endpointHandler
+    depends_on:
+      - postgres
+      - jiraconnector
+    environment:
+      - CONFIG_PATH=${CONFIG_PATH}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "8000:8000"
+
+    entrypoint: ["/app/wait-for-it.sh", "postgres:5432", "--", "/app/backend"]
+    
+    networks:
+      - jiraApp
+
+  frontend:
+    restart: always
+    build:
+      context: ../frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - jiraApp
+
+networks:
+  jiraApp:
+    driver: bridge
+
+volumes:
+  pgdata:
