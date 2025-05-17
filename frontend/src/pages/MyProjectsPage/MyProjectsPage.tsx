@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import StatsCard from '../../components/StatsCard/StatsCard';
-import { Project } from '../../types/models';
+// import { Project } from '../../types/models';
 import { FiFolder, FiSearch, FiX } from 'react-icons/fi';
 import './MyProjectsPage.scss';
+import { config } from '../../config/config';
+
+interface Project {
+  Id: string;
+  Key: string;
+  Name: string;
+  self: string;
+}
 
 const MyProjectsPage: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -14,10 +22,16 @@ const MyProjectsPage: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
-    axios.get('/api/v1/projects')
+    axios.get(config.api.endpoints.projects)
       .then((res) => {
-        setProjects(res.data);
-        setFilteredProjects(res.data);
+        const formattedProjects = res.data.map((project: any) => ({
+          Id: project.id,
+          Key: project.key,
+          Name: project.name,
+          self: project.self
+        }));
+        setProjects(formattedProjects);
+        setFilteredProjects(formattedProjects);
         setLoading(false);
       })
       .catch(() => {
@@ -94,7 +108,12 @@ const MyProjectsPage: React.FC = () => {
       ) : (
         <div className="stats-cards-container">
           {filteredProjects.map((project) => (
-            <StatsCard key={project.Id} projectId={project.Id} />
+            <StatsCard 
+              key={project.Id} 
+              projectKey={project.Key}
+              projectName={project.Name}
+              projectId={project.Id}
+            />
           ))}
         </div>
       )}

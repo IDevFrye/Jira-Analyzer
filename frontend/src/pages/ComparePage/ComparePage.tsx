@@ -4,6 +4,7 @@ import { Project } from '../../types/models';
 import CompareSelector from '../../components/CompareSelector/CompareSelector';
 import CompareModal from '../../components/CompareModal/CompareModal';
 import './ComparePage.scss';
+import { config } from '../../config/config';
 
 const ComparePage: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -14,14 +15,23 @@ const ComparePage: React.FC = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await axios.get('/api/v1/projects');
-        setProjects(response.data);
+        const response = await axios.get(config.api.endpoints.projects);
+        console.log('response: ', response);
+        const formattedProjects = response.data.map((proj: any) => ({
+          Id: proj.id,
+          Key: proj.key,
+          Name: proj.name,
+          Self: proj.self,
+        }));
+        console.log(formattedProjects)
+        setProjects(formattedProjects);
       } catch (error) {
         console.error('Error fetching projects:', error);
       } finally {
         setLoading(false);
       }
     };
+    
     
     fetchProjects();
   }, []);

@@ -30,12 +30,7 @@ export interface ChartData {
 
 const CompareCharts: React.FC<CompareChartsProps> = ({ projects }) => {
   const [chartType, setChartType] = useState<'timeOpen' | 'statusDistribution' | 'timeSpent' | 'priority'>('timeOpen');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, [chartType]);
+  const [loading, setLoading] = useState(false);
 
   const projectKeys = projects.map(p => p.Key);
 
