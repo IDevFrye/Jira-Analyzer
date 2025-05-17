@@ -1,5 +1,0 @@
-configs
-log
-*.out
-build/.env
-tests/stress

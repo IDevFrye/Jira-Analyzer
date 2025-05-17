@@ -2,13 +2,14 @@ package repository
 
 import (
 	"fmt"
-	"github.com/endpointhandler/model"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/endpointhandler/model"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 var DB *sqlx.DB

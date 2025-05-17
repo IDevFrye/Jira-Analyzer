@@ -1,0 +1,5 @@
+configs
+jiraConnector/log
+jiraConnector/build/.env
+jiraConnector/tests/stress
+tests
