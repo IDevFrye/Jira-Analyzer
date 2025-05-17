@@ -2,8 +2,7 @@ export interface Project {
   Id: number;
   Key: string;
   Name: string;
-  Url: string;
-  Existence?: boolean;
+  self: string;
 }
 
 export interface ProjectStats extends Project {

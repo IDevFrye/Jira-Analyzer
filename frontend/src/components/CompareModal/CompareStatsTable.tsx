@@ -1,18 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Project } from '../../types/models';
+import { Project, ProjectStats } from '../../types/models';
 import './CompareStatsTable.scss';
-
-interface ProjectStats extends Project {
-  allIssuesCount?: number;
-  openIssuesCount?: number;
-  closeIssuesCount?: number;
-  resolvedIssuesCount?: number;
-  reopenedIssuesCount?: number;
-  progressIssuesCount?: number;
-  averageTime?: number;
-  averageIssuesCount?: number;
-}
+import { config } from '../../config/config';
 
 interface CompareStatsTableProps {
   projects: Project[];
@@ -27,10 +17,26 @@ const CompareStatsTable: React.FC<CompareStatsTableProps> = ({ projects }) => {
       try {
         const responses = await Promise.all(
           projects.map(project => 
-            axios.get(`/api/v1/projects/${project.Id}`)
+            axios.get(config.api.endpoints.projectStats(project.Id))
           )
         );
-        setStatsData(responses.map(res => res.data));
+        
+        const formattedData = responses.map((res, index) => ({
+          Id: projects[index].Id,
+          Key: projects[index].Key,
+          Name: projects[index].Name,
+          self: projects[index].self,
+          allIssuesCount: res.data.total_issues,
+          openIssuesCount: res.data.open_issues,
+          closeIssuesCount: res.data.closed_issues,
+          reopenedIssuesCount: res.data.reopened_issues,
+          resolvedIssuesCount: res.data.resolved_issues,
+          progressIssuesCount: res.data.in_progress_issues,
+          averageTime: res.data.avg_resolution_time_h,
+          averageIssuesCount: res.data.avg_created_per_day_7d 
+        }));
+        
+        setStatsData(formattedData);
       } catch (error) {
         console.error('Error fetching stats:', error);
       } finally {
@@ -74,18 +80,22 @@ const CompareStatsTable: React.FC<CompareStatsTableProps> = ({ projects }) => {
           </tr>
         </thead>
         <tbody>
-          {stats.map(stat => (
-            <tr key={stat.key}>
-              <td>{stat.label}</td>
-              {statsData.map((projectData, index) => (
-                <td key={`${projects[index].Id}-${stat.key}`}>
-                  {stat.format 
-                    ? stat.format(projectData[stat.key as keyof ProjectStats] as number)
-                    : projectData[stat.key as keyof ProjectStats] ?? 'N/A'}
-                </td>
-              ))}
+          {statsData.length > 0 ? (
+            stats.map(stat => (
+              <tr key={stat.key}>
+                <td>{stat.label}</td>
+                {statsData.map((projectData, index) => (
+                  <td key={`${projects[index].Id}-${stat.key}`}>
+                    {JSON.stringify(projectData[stat.key as keyof ProjectStats])}
+                  </td>
+                ))}
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={projects.length + 1}>Нет данных для отображения</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>

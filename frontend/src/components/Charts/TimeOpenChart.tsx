@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import axios from 'axios';
 import './Chart.scss';
+import { config } from '../../config/config';
 
 interface TimeOpenChartProps {
   projectKey: string;
@@ -15,17 +16,27 @@ export interface TimeOpenData {
 const TimeOpenChart: React.FC<TimeOpenChartProps> = ({ projectKey }) => {
   const [data, setData] = useState<TimeOpenData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    axios.get('/api/v1/analytics/time-open', { params: { project: projectKey } })
+    setLoading(true);
+    setError(false);
+    
+    axios.get(config.api.endpoints.timeOpenAnalytics, { params: { key: projectKey } })
       .then(res => {
-        setData(res.data.data);
+        const responseData = Array.isArray(res.data) ? res.data : res.data?.data || [];
+        setData(responseData);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setLoading(false);
+        setError(true);
+      });
   }, [projectKey]);
 
   if (loading) return <div className="chart-loading">Загрузка данных...</div>;
+  if (error) return <div className="chart-error">Ошибка загрузки данных</div>;
+  if (data.length === 0) return <div className="chart-no-data">Нет данных для отображения</div>;
 
   const chartData = {
     labels: data.map(item => item.range),
@@ -55,6 +66,9 @@ const TimeOpenChart: React.FC<TimeOpenChartProps> = ({ projectKey }) => {
         title: {
           display: true,
           text: 'Количество задач'
+        },
+        ticks: {
+          stepSize: 1 // Чтобы значения были целыми числами
         }
       },
       x: {
@@ -67,7 +81,7 @@ const TimeOpenChart: React.FC<TimeOpenChartProps> = ({ projectKey }) => {
   };
 
   return (
-    <div className="chart-wrapper">
+    <div className="chart-wrapper" style={{ minHeight: '300px' }}>
       <Bar data={chartData} options={options} />
     </div>
   );

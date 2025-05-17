@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Pie } from 'react-chartjs-2';
 import axios from 'axios';
 import './Chart.scss';
+import { config } from '../../config/config';
 
 interface StatusDistributionChartProps {
   projectKey: string;
@@ -15,24 +16,31 @@ export interface StatusDistributionData {
 const StatusDistributionChart: React.FC<StatusDistributionChartProps> = ({ projectKey }) => {
   const [data, setData] = useState<StatusDistributionData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    axios.get('/api/v1/analytics/status-distribution', { params: { project: projectKey } })
+    setLoading(true);
+    setError(false);
+    
+    axios.get(config.api.endpoints.statusDistribution, { params: { key: projectKey } })
       .then(res => {
-        setData(res.data.data);
+        const responseData = Array.isArray(res.data) ? res.data : 
+                          res.data?.data ? res.data.data : [];
+        setData(responseData);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setLoading(false);
+        setError(true);
+      });
   }, [projectKey]);
 
   if (loading) return <div className="chart-loading">Загрузка данных...</div>;
+  if (error) return <div className="chart-error">Ошибка загрузки данных</div>;
+  if (data.length === 0) return <div className="chart-no-data">Нет данных о статусах</div>;
 
   const backgroundColors = [
-    '#ef4444', // Open - red
-    '#f59e0b', // In Progress - amber
-    '#10b981', // Resolved - emerald
-    '#3b82f6', // Closed - blue
-    '#8b5cf6'  // Reopened - violet
+    '#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'
   ];
 
   const chartData = {
@@ -51,18 +59,14 @@ const StatusDistributionChart: React.FC<StatusDistributionChartProps> = ({ proje
       title: {
         display: true,
         text: 'Распределение задач по статусам',
-        font: {
-          size: 16
-        }
+        font: { size: 16 }
       },
-      legend: {
-        position: 'right' as const,
-      }
+      legend: { position: 'right' as const }
     }
   };
 
   return (
-    <div className="chart-wrapper">
+    <div className="chart-wrapper-status" style={{ minHeight: '300px' }}>
       <Pie data={chartData} options={options} />
     </div>
   );

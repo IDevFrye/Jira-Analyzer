@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import axios from 'axios';
 import './Chart.scss';
+import { config } from '../../config/config';
 
 interface TimeSpentChartProps {
   projectKey: string;
@@ -15,17 +16,28 @@ export interface TimeSpentData {
 const TimeSpentChart: React.FC<TimeSpentChartProps> = ({ projectKey }) => {
   const [data, setData] = useState<TimeSpentData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    axios.get('/api/v1/analytics/time-spent', { params: { project: projectKey } })
+    setLoading(true);
+    setError(false);
+    
+    axios.get(config.api.endpoints.timeSpentAnalytics, { params: { key: projectKey } })
       .then(res => {
-        setData(res.data.data);
+        const responseData = Array.isArray(res.data) ? res.data : 
+                          res.data?.data ? res.data.data : [];
+        setData(responseData);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setLoading(false);
+        setError(true);
+      });
   }, [projectKey]);
 
   if (loading) return <div className="chart-loading">Загрузка данных...</div>;
+  if (error) return <div className="chart-error">Ошибка загрузки данных</div>;
+  if (data.length === 0) return <div className="chart-no-data">Нет данных о времени</div>;
 
   const chartData = {
     labels: data.map(item => item.user),
@@ -45,37 +57,23 @@ const TimeSpentChart: React.FC<TimeSpentChartProps> = ({ projectKey }) => {
       title: {
         display: true,
         text: 'Затраченное время по пользователям',
-        font: {
-          size: 16
-        }
+        font: { size: 16 }
       },
     },
     scales: {
       x: {
         beginAtZero: true,
-        title: {
-          display: true,
-          text: 'Часы'
-        }
+        title: { display: true, text: 'Часы' }
       },
       y: {
-        title: {
-          display: true,
-          text: 'Пользователи'
-        }
+        title: { display: true, text: 'Пользователи' }
       }
     }
   };
 
   return (
-    <div className="chart-wrapper">
-      <Bar 
-        data={chartData} 
-        options={{
-          ...options,
-          indexAxis: 'y' as const,
-        }} 
-      />
+    <div className="chart-wrapper" style={{ minHeight: '300px' }}>
+      <Bar data={chartData} options={options} />
     </div>
   );
 };

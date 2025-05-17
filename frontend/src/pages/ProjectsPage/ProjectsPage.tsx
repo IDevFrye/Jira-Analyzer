@@ -4,33 +4,110 @@ import ProjectCard from '../../components/ProjectCard/ProjectCard';
 import { Project } from '../../types/models';
 import { FiSearch, FiFolder, FiX } from 'react-icons/fi';
 import './ProjectsPage.scss';
+import { config } from '../../config/config';
+
+interface ApiResponse {
+  Projects?: Project[];
+  PageInfo?: {
+    pageCount: number;
+    currentPage: number;
+    projectsCount: number;
+  };
+}
 
 const ProjectsPage: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+const [addedProjects, setAddedProjects] = useState<Set<string>>(() => {
+  const saved = localStorage.getItem('addedProjects');
+  return saved ? new Set(JSON.parse(saved)) : new Set();
+});
+
+useEffect(() => {
+  localStorage.setItem('addedProjects', JSON.stringify(Array.from(addedProjects)));
+}, [addedProjects]);
+  
+  const handleToggleAdd = (key: string, isAdded: boolean) => {
+    setAddedProjects(prev => {
+      const newSet = new Set(prev);
+      if (isAdded) {
+        newSet.add(key);
+      } else {
+        newSet.delete(key);
+      }
+      return newSet;
+    });
+  };
+
 
   useEffect(() => {
     setLoading(true);
+    
     axios
-      .get(`/api/v1/connector/projects`, {
+      .get(config.api.endpoints.connectorProjects, {
         params: { page, limit: 9, search },
       })
       .then((res) => {
-        setProjects(res.data.Projects);
-        setPageCount(res.data.PageInfo.pageCount);
+        const { projects, pageInfo } = res.data;
+        
+        if (!projects) {
+          throw new Error("No projects data received");
+        }
+
+        const formattedProjects = projects.map((p: any) => ({
+          Id: p.id,
+          Key: p.key,
+          Name: p.name,
+          self: p.self
+        }));
+
+        setProjects(formattedProjects);
+        setPageCount(pageInfo?.pageCount || 1);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("Error fetching projects:", error);
         setLoading(false);
+        setProjects([]);
+        setPageCount(1);
       });
   }, [page, search]);
 
   const handleClearSearch = () => {
     setSearch('');
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const res = await axios.get(config.api.endpoints.connectorProjects, {
+        params: { page, limit: 9, search },
+      });
+  
+      if (!res.data?.projects) {
+        throw new Error("Invalid projects data received");
+      }
+  
+      const formattedProjects = res.data.projects.map((p: any) => ({
+        Id: p.id,
+        Key: p.key,
+        Name: p.name,
+        self: p.self,
+      }));
+  
+      const addedRes = await axios.get(config.api.endpoints.projects);
+      const addedKeys = new Set<string>(addedRes.data.map((p: any) => p.key as string)); 
+  
+      setProjects(formattedProjects);
+      setPageCount(res.data.pageInfo?.pageCount || 1);
+      setAddedProjects(addedKeys);
+    } catch (error) {
+      console.error("Update error:", error);
+      alert("Не удалось обновить данные. Пожалуйста, попробуйте позже.");
+    }
   };
 
   return (
@@ -86,15 +163,17 @@ const ProjectsPage: React.FC = () => {
       ) : (
         <>
           <div className="projects-grid">
-            {projects.map((p) => (
-              <ProjectCard
-                key={p.Id}
-                Id={p.Id}
-                Name={p.Name}
-                Key={p.Key}
-                Url={p.Url}
-                onUpdate={() => {}}
-              />
+            
+          {projects.map((p) => (
+            <ProjectCard
+              key={p.Id}
+              Id={p.Id}
+              Name={p.Name}
+              Key={p.Key}
+              self={p.self}
+              onUpdate={handleUpdate}
+              isAdded={addedProjects.has(p.Key)}
+            />
             ))}
           </div>
           
@@ -102,7 +181,7 @@ const ProjectsPage: React.FC = () => {
             <button 
               className="pagination-button" 
               disabled={page === 1} 
-              onClick={() => setPage(page - 1)}
+              onClick={() => {setPage(page - 1);}}
             >
               &larr; Назад
             </button>
