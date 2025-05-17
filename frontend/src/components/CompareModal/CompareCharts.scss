@@ -1,0 +1,44 @@
+@use '../../styles/variables' as v;
+
+.compare-charts {
+  .chart-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: v.$spacing-sm;
+    margin-bottom: v.$spacing-lg;
+    justify-content: center;
+  }
+
+  .chart-tab {
+    padding: v.$spacing-sm v.$spacing-md;
+    background-color: rgba(v.$primary-color, 0.1);
+    border: none;
+    border-radius: v.$rounded-md;
+    color: v.$text-secondary;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+
+    &:hover {
+      background-color: rgba(v.$primary-color, 0.2);
+      color: v.$text-primary;
+    }
+
+    &.active {
+      background-color: v.$primary-color;
+      color: white;
+      font-weight: 500;
+    }
+  }
+
+  .chart-container {
+    background-color: white;
+    border-radius: v.$rounded-lg;
+    padding: v.$spacing-lg;
+    box-shadow: v.$shadow-md;
+    min-height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}

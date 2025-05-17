@@ -1,0 +1,75 @@
+@use '../../styles/variables' as v;
+
+.compare {
+  &-container {
+    background: white;
+    border-radius: v.$rounded-lg;
+    box-shadow: v.$shadow-sm;
+    padding: v.$spacing-xl;
+    margin: v.$spacing-lg 0;
+  }
+
+  &-title {
+    color: v.$text-primary;
+    margin-top: 0;
+    margin-bottom: v.$spacing-lg;
+    font-size: 1.5rem;
+  }
+
+  &-message {
+    color: v.$text-secondary;
+    padding: v.$spacing-md;
+    text-align: center;
+  }
+
+  &-table-wrapper {
+    overflow-x: auto;
+    border-radius: v.$rounded-md;
+    border: 1px solid v.$border-color;
+  }
+
+  &-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+  }
+
+  &-header {
+    background-color: v.$primary-color;
+    color: white;
+    padding: v.$spacing-md v.$spacing-lg;
+    text-align: left;
+    font-weight: 500;
+
+    &:first-child {
+      border-top-left-radius: v.$rounded-md;
+    }
+
+    &:last-child {
+      border-top-right-radius: v.$rounded-md;
+    }
+  }
+
+  &-row {
+    border-bottom: 1px solid v.$border-color;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:nth-child(even) {
+      background-color: rgba(v.$border-color, 0.3);
+    }
+  }
+
+  &-metric {
+    padding: v.$spacing-md v.$spacing-lg;
+    font-weight: 500;
+    color: v.$text-primary;
+  }
+
+  &-value {
+    padding: v.$spacing-md v.$spacing-lg;
+    color: v.$text-secondary;
+  }
+}

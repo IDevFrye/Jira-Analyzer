@@ -1,0 +1,69 @@
+@use '../../styles/variables' as v;
+
+.compare-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: v.$spacing-xl;
+  margin-bottom: v.$spacing-xl;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+
+  h3 {
+    color: v.$text-primary;
+    margin-bottom: v.$spacing-md;
+    font-size: 1.2rem;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid v.$border-color;
+    border-radius: v.$rounded-md;
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  li {
+    padding: v.$spacing-sm v.$spacing-md;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid v.$border-color;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &:hover {
+      background-color: rgba(v.$primary-color, 0.1);
+    }
+
+    &.selected {
+      background-color: rgba(v.$primary-color, 0.2);
+      font-weight: 500;
+    }
+
+    .remove-btn {
+      color: v.$error-color;
+      font-size: 1.2rem;
+      padding: 0 v.$spacing-xs;
+    }
+  }
+
+  .empty-message {
+    text-align: center;
+    color: v.$text-secondary;
+    padding: v.$spacing-lg;
+    margin: 0;
+  }
+
+  .selected-projects {
+    li {
+      background-color: rgba(v.$primary-color, 0.05);
+    }
+    text-align: center;
+  }
+}

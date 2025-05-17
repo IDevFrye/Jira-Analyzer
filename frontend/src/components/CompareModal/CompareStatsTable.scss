@@ -1,0 +1,35 @@
+@use '../../styles/variables' as v;
+
+.stats-table-container {
+  overflow-x: auto;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+
+  th, td {
+    padding: v.$spacing-sm v.$spacing-md;
+    text-align: left;
+    border-bottom: 1px solid v.$border-color;
+  }
+
+  th {
+    background-color: rgba(v.$primary-color, 0.1);
+    color: v.$text-primary;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+  }
+
+  tr:hover {
+    background-color: rgba(v.$primary-color, 0.05);
+  }
+
+  tbody tr:last-child {
+    td {
+      border-bottom: none;
+    }
+  }
+}
