@@ -65,7 +65,7 @@ func (dt *DataTransformer) TransformIssueDB(jiraIssue *structures.JiraIssue) *st
 		Summary:     jiraIssue.Fields.Summary,
 		Description: jiraIssue.Fields.Description,
 		Type:        jiraIssue.Fields.Type.Description,
-		Priority:    jiraIssue.Fields.Project.Name,
+		Priority:    jiraIssue.Fields.Priority.Name,
 		Status:      jiraIssue.Fields.Status.Name,
 		CreatedTime: createdTime,
 		ClosedTime:  closedTime,
