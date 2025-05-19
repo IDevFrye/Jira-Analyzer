@@ -1,0 +1,60 @@
+version: '3'
+
+vars:
+  COMPOSE_FILE: deployment/docker-compose.yaml
+
+tasks:
+  build:
+    desc: Сборка Docker образов
+    cmds:
+      - docker compose build
+
+  unit-test:
+    desc: Юнит-тесты Go (В ПРОЦЕССЕ РАЗРАБОТКИ)
+    cmds:
+      - echo "ПОКА НЕ РАБОТАЕТ"
+      #- docker compose run --rm deployment-backend-1 go test ./...
+      #- docker compose run --rm deployment-jiraconnector-1 go test ./...
+
+  integration-test:
+    desc: Интеграционные тесты (В ПРОЦЕССЕ РАЗРАБОТКИ)
+    cmds:
+      - echo "ПОКА НЕ РАБОТАЕТ"
+      #- docker compose up -d  deployment-postgres-1  deployment-jiraconnector-1  deployment-backend-1
+      #- sleep 5
+      #- docker compose run --rm deployment-backend-1 go test ./tests/integration/...
+      #- docker compose run --rm deployment-jiraconnector-1 go test ./tests/integration/...
+
+  up:
+    desc: Запуск приложения
+    cmds:
+      - docker compose up -d
+
+  all:
+    desc: Полный пайплайн [ build -> unit-test -> integration-test -> up ]
+    cmds:
+      - task: build
+      - task: unit-test
+      - task: integration-test
+      - task: up
+
+  down:
+    desc: Остановить контейнеры
+    cmds:
+      - docker compose down
+
+  clean:
+    desc: Полная очистка контейнеров и мусора
+    cmds:
+      - docker compose down -v --remove-orphans
+      - docker system prune -f
+
+  logs:
+    desc: Логи всех сервисов (кроме коннектора :D)
+    cmds:
+      - docker compose logs -f
+  
+  logs-connector:
+    desc: Логи jira-connector
+    cmds:
+      - docker exec -it deployment-jiraconnector-1 cat log/jiraconnector.log
