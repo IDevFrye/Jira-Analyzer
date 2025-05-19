@@ -92,6 +92,62 @@ func (_c *MockJiraConnectorInterface_GetAllProjects_Call) RunAndReturn(run func(
 	return _c
 }
 
+// GetProjectByKey provides a mock function for the type MockJiraConnectorInterface
+func (_mock *MockJiraConnectorInterface) GetProjectByKey(projectKey string) (*structures.JiraProject, error) {
+	ret := _mock.Called(projectKey)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetProjectByKey")
+	}
+
+	var r0 *structures.JiraProject
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(string) (*structures.JiraProject, error)); ok {
+		return returnFunc(projectKey)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string) *structures.JiraProject); ok {
+		r0 = returnFunc(projectKey)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*structures.JiraProject)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
+		r1 = returnFunc(projectKey)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockJiraConnectorInterface_GetProjectByKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetProjectByKey'
+type MockJiraConnectorInterface_GetProjectByKey_Call struct {
+	*mock.Call
+}
+
+// GetProjectByKey is a helper method to define mock.On call
+//   - projectKey
+func (_e *MockJiraConnectorInterface_Expecter) GetProjectByKey(projectKey interface{}) *MockJiraConnectorInterface_GetProjectByKey_Call {
+	return &MockJiraConnectorInterface_GetProjectByKey_Call{Call: _e.mock.On("GetProjectByKey", projectKey)}
+}
+
+func (_c *MockJiraConnectorInterface_GetProjectByKey_Call) Run(run func(projectKey string)) *MockJiraConnectorInterface_GetProjectByKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *MockJiraConnectorInterface_GetProjectByKey_Call) Return(jiraProject *structures.JiraProject, err error) *MockJiraConnectorInterface_GetProjectByKey_Call {
+	_c.Call.Return(jiraProject, err)
+	return _c
+}
+
+func (_c *MockJiraConnectorInterface_GetProjectByKey_Call) RunAndReturn(run func(projectKey string) (*structures.JiraProject, error)) *MockJiraConnectorInterface_GetProjectByKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetProjectIssues provides a mock function for the type MockJiraConnectorInterface
 func (_mock *MockJiraConnectorInterface) GetProjectIssues(project string) ([]structures.JiraIssue, error) {
 	ret := _mock.Called(project)
@@ -234,18 +290,20 @@ func (_m *MockDataTransformerInterface) EXPECT() *MockDataTransformerInterface_E
 }
 
 // TransformAuthorDB provides a mock function for the type MockDataTransformerInterface
-func (_mock *MockDataTransformerInterface) TransformAuthorDB(jiraAuthor structures.User) structures.DBAuthor {
+func (_mock *MockDataTransformerInterface) TransformAuthorDB(jiraAuthor *structures.User) *structures.DBAuthor {
 	ret := _mock.Called(jiraAuthor)
 
 	if len(ret) == 0 {
 		panic("no return value specified for TransformAuthorDB")
 	}
 
-	var r0 structures.DBAuthor
-	if returnFunc, ok := ret.Get(0).(func(structures.User) structures.DBAuthor); ok {
+	var r0 *structures.DBAuthor
+	if returnFunc, ok := ret.Get(0).(func(*structures.User) *structures.DBAuthor); ok {
 		r0 = returnFunc(jiraAuthor)
 	} else {
-		r0 = ret.Get(0).(structures.DBAuthor)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*structures.DBAuthor)
+		}
 	}
 	return r0
 }
@@ -261,36 +319,38 @@ func (_e *MockDataTransformerInterface_Expecter) TransformAuthorDB(jiraAuthor in
 	return &MockDataTransformerInterface_TransformAuthorDB_Call{Call: _e.mock.On("TransformAuthorDB", jiraAuthor)}
 }
 
-func (_c *MockDataTransformerInterface_TransformAuthorDB_Call) Run(run func(jiraAuthor structures.User)) *MockDataTransformerInterface_TransformAuthorDB_Call {
+func (_c *MockDataTransformerInterface_TransformAuthorDB_Call) Run(run func(jiraAuthor *structures.User)) *MockDataTransformerInterface_TransformAuthorDB_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(structures.User))
+		run(args[0].(*structures.User))
 	})
 	return _c
 }
 
-func (_c *MockDataTransformerInterface_TransformAuthorDB_Call) Return(dBAuthor structures.DBAuthor) *MockDataTransformerInterface_TransformAuthorDB_Call {
+func (_c *MockDataTransformerInterface_TransformAuthorDB_Call) Return(dBAuthor *structures.DBAuthor) *MockDataTransformerInterface_TransformAuthorDB_Call {
 	_c.Call.Return(dBAuthor)
 	return _c
 }
 
-func (_c *MockDataTransformerInterface_TransformAuthorDB_Call) RunAndReturn(run func(jiraAuthor structures.User) structures.DBAuthor) *MockDataTransformerInterface_TransformAuthorDB_Call {
+func (_c *MockDataTransformerInterface_TransformAuthorDB_Call) RunAndReturn(run func(jiraAuthor *structures.User) *structures.DBAuthor) *MockDataTransformerInterface_TransformAuthorDB_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // TransformIssueDB provides a mock function for the type MockDataTransformerInterface
-func (_mock *MockDataTransformerInterface) TransformIssueDB(jiraIssue structures.JiraIssue) structures.DBIssue {
+func (_mock *MockDataTransformerInterface) TransformIssueDB(jiraIssue *structures.JiraIssue) *structures.DBIssue {
 	ret := _mock.Called(jiraIssue)
 
 	if len(ret) == 0 {
 		panic("no return value specified for TransformIssueDB")
 	}
 
-	var r0 structures.DBIssue
-	if returnFunc, ok := ret.Get(0).(func(structures.JiraIssue) structures.DBIssue); ok {
+	var r0 *structures.DBIssue
+	if returnFunc, ok := ret.Get(0).(func(*structures.JiraIssue) *structures.DBIssue); ok {
 		r0 = returnFunc(jiraIssue)
 	} else {
-		r0 = ret.Get(0).(structures.DBIssue)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*structures.DBIssue)
+		}
 	}
 	return r0
 }
@@ -306,36 +366,38 @@ func (_e *MockDataTransformerInterface_Expecter) TransformIssueDB(jiraIssue inte
 	return &MockDataTransformerInterface_TransformIssueDB_Call{Call: _e.mock.On("TransformIssueDB", jiraIssue)}
 }
 
-func (_c *MockDataTransformerInterface_TransformIssueDB_Call) Run(run func(jiraIssue structures.JiraIssue)) *MockDataTransformerInterface_TransformIssueDB_Call {
+func (_c *MockDataTransformerInterface_TransformIssueDB_Call) Run(run func(jiraIssue *structures.JiraIssue)) *MockDataTransformerInterface_TransformIssueDB_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(structures.JiraIssue))
+		run(args[0].(*structures.JiraIssue))
 	})
 	return _c
 }
 
-func (_c *MockDataTransformerInterface_TransformIssueDB_Call) Return(dBIssue structures.DBIssue) *MockDataTransformerInterface_TransformIssueDB_Call {
+func (_c *MockDataTransformerInterface_TransformIssueDB_Call) Return(dBIssue *structures.DBIssue) *MockDataTransformerInterface_TransformIssueDB_Call {
 	_c.Call.Return(dBIssue)
 	return _c
 }
 
-func (_c *MockDataTransformerInterface_TransformIssueDB_Call) RunAndReturn(run func(jiraIssue structures.JiraIssue) structures.DBIssue) *MockDataTransformerInterface_TransformIssueDB_Call {
+func (_c *MockDataTransformerInterface_TransformIssueDB_Call) RunAndReturn(run func(jiraIssue *structures.JiraIssue) *structures.DBIssue) *MockDataTransformerInterface_TransformIssueDB_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // TransformProjectDB provides a mock function for the type MockDataTransformerInterface
-func (_mock *MockDataTransformerInterface) TransformProjectDB(jiraProject structures.JiraProject) structures.DBProject {
+func (_mock *MockDataTransformerInterface) TransformProjectDB(jiraProject *structures.JiraProject) *structures.DBProject {
 	ret := _mock.Called(jiraProject)
 
 	if len(ret) == 0 {
 		panic("no return value specified for TransformProjectDB")
 	}
 
-	var r0 structures.DBProject
-	if returnFunc, ok := ret.Get(0).(func(structures.JiraProject) structures.DBProject); ok {
+	var r0 *structures.DBProject
+	if returnFunc, ok := ret.Get(0).(func(*structures.JiraProject) *structures.DBProject); ok {
 		r0 = returnFunc(jiraProject)
 	} else {
-		r0 = ret.Get(0).(structures.DBProject)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*structures.DBProject)
+		}
 	}
 	return r0
 }
@@ -351,25 +413,25 @@ func (_e *MockDataTransformerInterface_Expecter) TransformProjectDB(jiraProject 
 	return &MockDataTransformerInterface_TransformProjectDB_Call{Call: _e.mock.On("TransformProjectDB", jiraProject)}
 }
 
-func (_c *MockDataTransformerInterface_TransformProjectDB_Call) Run(run func(jiraProject structures.JiraProject)) *MockDataTransformerInterface_TransformProjectDB_Call {
+func (_c *MockDataTransformerInterface_TransformProjectDB_Call) Run(run func(jiraProject *structures.JiraProject)) *MockDataTransformerInterface_TransformProjectDB_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(structures.JiraProject))
+		run(args[0].(*structures.JiraProject))
 	})
 	return _c
 }
 
-func (_c *MockDataTransformerInterface_TransformProjectDB_Call) Return(dBProject structures.DBProject) *MockDataTransformerInterface_TransformProjectDB_Call {
+func (_c *MockDataTransformerInterface_TransformProjectDB_Call) Return(dBProject *structures.DBProject) *MockDataTransformerInterface_TransformProjectDB_Call {
 	_c.Call.Return(dBProject)
 	return _c
 }
 
-func (_c *MockDataTransformerInterface_TransformProjectDB_Call) RunAndReturn(run func(jiraProject structures.JiraProject) structures.DBProject) *MockDataTransformerInterface_TransformProjectDB_Call {
+func (_c *MockDataTransformerInterface_TransformProjectDB_Call) RunAndReturn(run func(jiraProject *structures.JiraProject) *structures.DBProject) *MockDataTransformerInterface_TransformProjectDB_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // TransformStatusDB provides a mock function for the type MockDataTransformerInterface
-func (_mock *MockDataTransformerInterface) TransformStatusDB(jiraChanges structures.Changelog) map[string]structures.DBStatusChanges {
+func (_mock *MockDataTransformerInterface) TransformStatusDB(jiraChanges *structures.Changelog) map[string]structures.DBStatusChanges {
 	ret := _mock.Called(jiraChanges)
 
 	if len(ret) == 0 {
@@ -377,7 +439,7 @@ func (_mock *MockDataTransformerInterface) TransformStatusDB(jiraChanges structu
 	}
 
 	var r0 map[string]structures.DBStatusChanges
-	if returnFunc, ok := ret.Get(0).(func(structures.Changelog) map[string]structures.DBStatusChanges); ok {
+	if returnFunc, ok := ret.Get(0).(func(*structures.Changelog) map[string]structures.DBStatusChanges); ok {
 		r0 = returnFunc(jiraChanges)
 	} else {
 		if ret.Get(0) != nil {
@@ -398,9 +460,9 @@ func (_e *MockDataTransformerInterface_Expecter) TransformStatusDB(jiraChanges i
 	return &MockDataTransformerInterface_TransformStatusDB_Call{Call: _e.mock.On("TransformStatusDB", jiraChanges)}
 }
 
-func (_c *MockDataTransformerInterface_TransformStatusDB_Call) Run(run func(jiraChanges structures.Changelog)) *MockDataTransformerInterface_TransformStatusDB_Call {
+func (_c *MockDataTransformerInterface_TransformStatusDB_Call) Run(run func(jiraChanges *structures.Changelog)) *MockDataTransformerInterface_TransformStatusDB_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(structures.Changelog))
+		run(args[0].(*structures.Changelog))
 	})
 	return _c
 }
@@ -410,13 +472,13 @@ func (_c *MockDataTransformerInterface_TransformStatusDB_Call) Return(stringToDB
 	return _c
 }
 
-func (_c *MockDataTransformerInterface_TransformStatusDB_Call) RunAndReturn(run func(jiraChanges structures.Changelog) map[string]structures.DBStatusChanges) *MockDataTransformerInterface_TransformStatusDB_Call {
+func (_c *MockDataTransformerInterface_TransformStatusDB_Call) RunAndReturn(run func(jiraChanges *structures.Changelog) map[string]structures.DBStatusChanges) *MockDataTransformerInterface_TransformStatusDB_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // TransformToDbIssueSet provides a mock function for the type MockDataTransformerInterface
-func (_mock *MockDataTransformerInterface) TransformToDbIssueSet(project structures.JiraProject, jiraIssue structures.JiraIssue) *datatransformer.DataTransformer {
+func (_mock *MockDataTransformerInterface) TransformToDbIssueSet(project *structures.JiraProject, jiraIssue *structures.JiraIssue) *datatransformer.DataTransformer {
 	ret := _mock.Called(project, jiraIssue)
 
 	if len(ret) == 0 {
@@ -424,7 +486,7 @@ func (_mock *MockDataTransformerInterface) TransformToDbIssueSet(project structu
 	}
 
 	var r0 *datatransformer.DataTransformer
-	if returnFunc, ok := ret.Get(0).(func(structures.JiraProject, structures.JiraIssue) *datatransformer.DataTransformer); ok {
+	if returnFunc, ok := ret.Get(0).(func(*structures.JiraProject, *structures.JiraIssue) *datatransformer.DataTransformer); ok {
 		r0 = returnFunc(project, jiraIssue)
 	} else {
 		if ret.Get(0) != nil {
@@ -446,9 +508,9 @@ func (_e *MockDataTransformerInterface_Expecter) TransformToDbIssueSet(project i
 	return &MockDataTransformerInterface_TransformToDbIssueSet_Call{Call: _e.mock.On("TransformToDbIssueSet", project, jiraIssue)}
 }
 
-func (_c *MockDataTransformerInterface_TransformToDbIssueSet_Call) Run(run func(project structures.JiraProject, jiraIssue structures.JiraIssue)) *MockDataTransformerInterface_TransformToDbIssueSet_Call {
+func (_c *MockDataTransformerInterface_TransformToDbIssueSet_Call) Run(run func(project *structures.JiraProject, jiraIssue *structures.JiraIssue)) *MockDataTransformerInterface_TransformToDbIssueSet_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(structures.JiraProject), args[1].(structures.JiraIssue))
+		run(args[0].(*structures.JiraProject), args[1].(*structures.JiraIssue))
 	})
 	return _c
 }
@@ -458,7 +520,7 @@ func (_c *MockDataTransformerInterface_TransformToDbIssueSet_Call) Return(dataTr
 	return _c
 }
 
-func (_c *MockDataTransformerInterface_TransformToDbIssueSet_Call) RunAndReturn(run func(project structures.JiraProject, jiraIssue structures.JiraIssue) *datatransformer.DataTransformer) *MockDataTransformerInterface_TransformToDbIssueSet_Call {
+func (_c *MockDataTransformerInterface_TransformToDbIssueSet_Call) RunAndReturn(run func(project *structures.JiraProject, jiraIssue *structures.JiraIssue) *datatransformer.DataTransformer) *MockDataTransformerInterface_TransformToDbIssueSet_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -524,7 +586,7 @@ func (_c *MockDbPusherInterface_Close_Call) RunAndReturn(run func()) *MockDbPush
 }
 
 // PushIssue provides a mock function for the type MockDbPusherInterface
-func (_mock *MockDbPusherInterface) PushIssue(project structures.DBProject, issue datatransformer.DataTransformer) (int, error) {
+func (_mock *MockDbPusherInterface) PushIssue(project *structures.DBProject, issue *datatransformer.DataTransformer) (int, error) {
 	ret := _mock.Called(project, issue)
 
 	if len(ret) == 0 {
@@ -533,15 +595,15 @@ func (_mock *MockDbPusherInterface) PushIssue(project structures.DBProject, issu
 
 	var r0 int
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(structures.DBProject, datatransformer.DataTransformer) (int, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(*structures.DBProject, *datatransformer.DataTransformer) (int, error)); ok {
 		return returnFunc(project, issue)
 	}
-	if returnFunc, ok := ret.Get(0).(func(structures.DBProject, datatransformer.DataTransformer) int); ok {
+	if returnFunc, ok := ret.Get(0).(func(*structures.DBProject, *datatransformer.DataTransformer) int); ok {
 		r0 = returnFunc(project, issue)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
-	if returnFunc, ok := ret.Get(1).(func(structures.DBProject, datatransformer.DataTransformer) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(*structures.DBProject, *datatransformer.DataTransformer) error); ok {
 		r1 = returnFunc(project, issue)
 	} else {
 		r1 = ret.Error(1)
@@ -561,9 +623,9 @@ func (_e *MockDbPusherInterface_Expecter) PushIssue(project interface{}, issue i
 	return &MockDbPusherInterface_PushIssue_Call{Call: _e.mock.On("PushIssue", project, issue)}
 }
 
-func (_c *MockDbPusherInterface_PushIssue_Call) Run(run func(project structures.DBProject, issue datatransformer.DataTransformer)) *MockDbPusherInterface_PushIssue_Call {
+func (_c *MockDbPusherInterface_PushIssue_Call) Run(run func(project *structures.DBProject, issue *datatransformer.DataTransformer)) *MockDbPusherInterface_PushIssue_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(structures.DBProject), args[1].(datatransformer.DataTransformer))
+		run(args[0].(*structures.DBProject), args[1].(*datatransformer.DataTransformer))
 	})
 	return _c
 }
@@ -573,13 +635,13 @@ func (_c *MockDbPusherInterface_PushIssue_Call) Return(n int, err error) *MockDb
 	return _c
 }
 
-func (_c *MockDbPusherInterface_PushIssue_Call) RunAndReturn(run func(project structures.DBProject, issue datatransformer.DataTransformer) (int, error)) *MockDbPusherInterface_PushIssue_Call {
+func (_c *MockDbPusherInterface_PushIssue_Call) RunAndReturn(run func(project *structures.DBProject, issue *datatransformer.DataTransformer) (int, error)) *MockDbPusherInterface_PushIssue_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // PushIssues provides a mock function for the type MockDbPusherInterface
-func (_mock *MockDbPusherInterface) PushIssues(project structures.DBProject, issues []datatransformer.DataTransformer) error {
+func (_mock *MockDbPusherInterface) PushIssues(project *structures.DBProject, issues []datatransformer.DataTransformer) error {
 	ret := _mock.Called(project, issues)
 
 	if len(ret) == 0 {
@@ -587,7 +649,7 @@ func (_mock *MockDbPusherInterface) PushIssues(project structures.DBProject, iss
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(structures.DBProject, []datatransformer.DataTransformer) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(*structures.DBProject, []datatransformer.DataTransformer) error); ok {
 		r0 = returnFunc(project, issues)
 	} else {
 		r0 = ret.Error(0)
@@ -607,9 +669,9 @@ func (_e *MockDbPusherInterface_Expecter) PushIssues(project interface{}, issues
 	return &MockDbPusherInterface_PushIssues_Call{Call: _e.mock.On("PushIssues", project, issues)}
 }
 
-func (_c *MockDbPusherInterface_PushIssues_Call) Run(run func(project structures.DBProject, issues []datatransformer.DataTransformer)) *MockDbPusherInterface_PushIssues_Call {
+func (_c *MockDbPusherInterface_PushIssues_Call) Run(run func(project *structures.DBProject, issues []datatransformer.DataTransformer)) *MockDbPusherInterface_PushIssues_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(structures.DBProject), args[1].([]datatransformer.DataTransformer))
+		run(args[0].(*structures.DBProject), args[1].([]datatransformer.DataTransformer))
 	})
 	return _c
 }
@@ -619,13 +681,13 @@ func (_c *MockDbPusherInterface_PushIssues_Call) Return(err error) *MockDbPusher
 	return _c
 }
 
-func (_c *MockDbPusherInterface_PushIssues_Call) RunAndReturn(run func(project structures.DBProject, issues []datatransformer.DataTransformer) error) *MockDbPusherInterface_PushIssues_Call {
+func (_c *MockDbPusherInterface_PushIssues_Call) RunAndReturn(run func(project *structures.DBProject, issues []datatransformer.DataTransformer) error) *MockDbPusherInterface_PushIssues_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // PushProject provides a mock function for the type MockDbPusherInterface
-func (_mock *MockDbPusherInterface) PushProject(project structures.DBProject) (int, error) {
+func (_mock *MockDbPusherInterface) PushProject(project *structures.DBProject) (int, error) {
 	ret := _mock.Called(project)
 
 	if len(ret) == 0 {
@@ -634,15 +696,15 @@ func (_mock *MockDbPusherInterface) PushProject(project structures.DBProject) (i
 
 	var r0 int
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(structures.DBProject) (int, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(*structures.DBProject) (int, error)); ok {
 		return returnFunc(project)
 	}
-	if returnFunc, ok := ret.Get(0).(func(structures.DBProject) int); ok {
+	if returnFunc, ok := ret.Get(0).(func(*structures.DBProject) int); ok {
 		r0 = returnFunc(project)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
-	if returnFunc, ok := ret.Get(1).(func(structures.DBProject) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(*structures.DBProject) error); ok {
 		r1 = returnFunc(project)
 	} else {
 		r1 = ret.Error(1)
@@ -661,9 +723,9 @@ func (_e *MockDbPusherInterface_Expecter) PushProject(project interface{}) *Mock
 	return &MockDbPusherInterface_PushProject_Call{Call: _e.mock.On("PushProject", project)}
 }
 
-func (_c *MockDbPusherInterface_PushProject_Call) Run(run func(project structures.DBProject)) *MockDbPusherInterface_PushProject_Call {
+func (_c *MockDbPusherInterface_PushProject_Call) Run(run func(project *structures.DBProject)) *MockDbPusherInterface_PushProject_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(structures.DBProject))
+		run(args[0].(*structures.DBProject))
 	})
 	return _c
 }
@@ -673,7 +735,7 @@ func (_c *MockDbPusherInterface_PushProject_Call) Return(n int, err error) *Mock
 	return _c
 }
 
-func (_c *MockDbPusherInterface_PushProject_Call) RunAndReturn(run func(project structures.DBProject) (int, error)) *MockDbPusherInterface_PushProject_Call {
+func (_c *MockDbPusherInterface_PushProject_Call) RunAndReturn(run func(project *structures.DBProject) (int, error)) *MockDbPusherInterface_PushProject_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -724,7 +786,7 @@ func (_c *MockDbPusherInterface_PushProjects_Call) RunAndReturn(run func(project
 }
 
 // PushStatusChanges provides a mock function for the type MockDbPusherInterface
-func (_mock *MockDbPusherInterface) PushStatusChanges(issue int, changes datatransformer.DataTransformer) error {
+func (_mock *MockDbPusherInterface) PushStatusChanges(issue int, changes *datatransformer.DataTransformer) error {
 	ret := _mock.Called(issue, changes)
 
 	if len(ret) == 0 {
@@ -732,7 +794,7 @@ func (_mock *MockDbPusherInterface) PushStatusChanges(issue int, changes datatra
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(int, datatransformer.DataTransformer) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(int, *datatransformer.DataTransformer) error); ok {
 		r0 = returnFunc(issue, changes)
 	} else {
 		r0 = ret.Error(0)
@@ -752,9 +814,9 @@ func (_e *MockDbPusherInterface_Expecter) PushStatusChanges(issue interface{}, c
 	return &MockDbPusherInterface_PushStatusChanges_Call{Call: _e.mock.On("PushStatusChanges", issue, changes)}
 }
 
-func (_c *MockDbPusherInterface_PushStatusChanges_Call) Run(run func(issue int, changes datatransformer.DataTransformer)) *MockDbPusherInterface_PushStatusChanges_Call {
+func (_c *MockDbPusherInterface_PushStatusChanges_Call) Run(run func(issue int, changes *datatransformer.DataTransformer)) *MockDbPusherInterface_PushStatusChanges_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(int), args[1].(datatransformer.DataTransformer))
+		run(args[0].(int), args[1].(*datatransformer.DataTransformer))
 	})
 	return _c
 }
@@ -764,7 +826,7 @@ func (_c *MockDbPusherInterface_PushStatusChanges_Call) Return(err error) *MockD
 	return _c
 }
 
-func (_c *MockDbPusherInterface_PushStatusChanges_Call) RunAndReturn(run func(issue int, changes datatransformer.DataTransformer) error) *MockDbPusherInterface_PushStatusChanges_Call {
+func (_c *MockDbPusherInterface_PushStatusChanges_Call) RunAndReturn(run func(issue int, changes *datatransformer.DataTransformer) error) *MockDbPusherInterface_PushStatusChanges_Call {
 	_c.Call.Return(run)
 	return _c
 }

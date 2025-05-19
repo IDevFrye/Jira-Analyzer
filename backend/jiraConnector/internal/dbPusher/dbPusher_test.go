@@ -56,7 +56,7 @@ func TestPushProject(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockQuery()
-			id, err := dbp.PushProject(structures.DBProject{Title: tt.title})
+			id, err := dbp.PushProject(&structures.DBProject{Title: tt.title})
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -226,7 +226,7 @@ func TestPushAuthor(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockQuery()
-			id, err := dbp.PushAuthor(tt.author)
+			id, err := dbp.PushAuthor(&tt.author)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -334,7 +334,7 @@ func TestPushStatusChanges(t *testing.T) {
 		WithArgs(issueID, 4, changeTime, fromStatus, toStatus).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	err = dbp.PushStatusChanges(issueID, changes)
+	err = dbp.PushStatusChanges(issueID, &changes)
 
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
@@ -535,7 +535,7 @@ func TestPushIssue(t *testing.T) {
 			}
 
 			dbp := &DbPusher{db: db, log: slog.Default()}
-			id, err := dbp.PushIssue(structures.DBProject{Title: tt.project}, tt.issue)
+			id, err := dbp.PushIssue(&structures.DBProject{Title: tt.project}, &tt.issue)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -799,7 +799,7 @@ func TestPushIssues(t *testing.T) {
 			}
 
 			dbp := &DbPusher{db: db, log: slog.Default()}
-			err = dbp.PushIssues(structures.DBProject{Title: tt.project}, tt.issues)
+			err = dbp.PushIssues(&structures.DBProject{Title: tt.project}, tt.issues)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)

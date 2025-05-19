@@ -194,7 +194,7 @@ func TestPushDataToDb(t *testing.T) {
 				log:             slog.Default(),
 			}
 
-			err := service.PushDataToDb(tt.project, tt.issues)
+			err := service.PushDataToDb(tt.project.Name, tt.issues)
 
 			if tt.expectedError != "" {
 				assert.EqualError(t, err, tt.expectedError)
@@ -260,7 +260,7 @@ func TestTransformDataToDb(t *testing.T) {
 				log:             slog.Default(),
 			}
 
-			result := service.TransformDataToDb(structures.JiraProject{Name: tt.project}, tt.issues)
+			result := service.TransformDataToDb(&structures.JiraProject{Name: tt.project}, tt.issues)
 
 			assert.Equal(t, tt.expectedResult, result)
 			mockTransformer.AssertExpectations(t)

@@ -43,18 +43,10 @@ func (dbp *DbPusher) Close() {
 	dbp.db.Close()
 }
 
-func (dbp *DbPusher) PushProject(project structures.DBProject) (int, error) {
+func (dbp *DbPusher) PushProject(project *structures.DBProject) (int, error) {
 	var projectId int
-	query := `INSERT INTO projects (title, url) VALUES ($1, $2) ON CONFLICT (title) DO NOTHING RETURNING id`
-	if err := dbp.db.QueryRow(query, project.Title, project.Url).Scan(&projectId); err != nil {
-		// if errors.Is(err, sql.ErrNoRows) {
-		// 	// Запись уже существует, но нам нужно её ID
-		// 	err = dbp.db.QueryRow("SELECT id FROM projects WHERE title = $1", project.Title).Scan(&projectId)
-		// 	if err != nil {
-		// 		return 0, fmt.Errorf("failed to get existing project ID: %w", err)
-		// 	}
-		// 	return projectId, nil
-		// }
+	query := `INSERT INTO projects (title, key, url) VALUES ($1, $2, $3) ON CONFLICT (title) DO NOTHING RETURNING id`
+	if err := dbp.db.QueryRow(query, project.Title, project.Key, project.Url).Scan(&projectId); err != nil {
 		return 0, fmt.Errorf("%w - %s: %w", myerr.ErrInsertProject, project.Title, err)
 	}
 	dbp.log.Info("success push project", "project", project.Title)
@@ -70,7 +62,7 @@ func (dbp *DbPusher) PushProjects(projects []structures.DBProject) error {
 	}
 
 	for _, project := range projects {
-		_, err = dbp.PushProject(project)
+		_, err = dbp.PushProject(&project)
 		if err != nil {
 			ansErr := fmt.Errorf("%w - %s: %w", myerr.ErrPushProject, project.Title, err)
 			dbp.log.Error(ansErr.Error())
@@ -90,7 +82,7 @@ func (dbp *DbPusher) PushProjects(projects []structures.DBProject) error {
 
 }
 
-func (dbp *DbPusher) PushAuthor(author structures.DBAuthor) (int, error) {
+func (dbp *DbPusher) PushAuthor(author *structures.DBAuthor) (int, error) {
 	var authorId int
 	query := "INSERT INTO author (name) VALUES ($1) ON CONFLICT (name) DO NOTHING RETURNING id"
 
@@ -105,14 +97,14 @@ func (dbp *DbPusher) PushAuthor(author structures.DBAuthor) (int, error) {
 
 }
 
-func (dbp *DbPusher) PushStatusChanges(issue int, changes datatransformer.DataTransformer) error {
+func (dbp *DbPusher) PushStatusChanges(issue int, changes *datatransformer.DataTransformer) error {
 	query := "INSERT INTO statuschanges (issueId, authorId, changeTime, fromStatus, toStatus) VALUES ($1, $2, $3, $4, $5)"
 	for author, statusChange := range changes.StatusChanges {
 		if dbp.hasStatusChange(issue, statusChange.ChangeTime) {
 			dbp.log.Warn("already has such status change")
 			return nil
 		}
-		authorId, err := dbp.getAuthorId(structures.DBAuthor{Name: author})
+		authorId, err := dbp.getAuthorId(&structures.DBAuthor{Name: author})
 		if err != nil {
 			dbp.log.Error("err get author Id", "author", author)
 			return err
@@ -127,20 +119,20 @@ func (dbp *DbPusher) PushStatusChanges(issue int, changes datatransformer.DataTr
 	return nil
 }
 
-func (dbp *DbPusher) PushIssue(project structures.DBProject, issue datatransformer.DataTransformer) (int, error) {
+func (dbp *DbPusher) PushIssue(project *structures.DBProject, issue *datatransformer.DataTransformer) (int, error) {
 	projectId, err := dbp.getProjectId(project)
 	if err != nil {
 		dbp.log.Error("err get project", "project", project)
 		return 0, err
 	}
 
-	authorId, err := dbp.getAuthorId(issue.Author)
+	authorId, err := dbp.getAuthorId(&issue.Author)
 	if err != nil {
 		dbp.log.Error("err get author Id", "author", issue.Author.Name)
 		return 0, err
 	}
 
-	assegneeId, err := dbp.getAuthorId(issue.Assignee)
+	assegneeId, err := dbp.getAuthorId(&issue.Assignee)
 	if err != nil {
 		dbp.log.Error("err get assignee Id", "author", issue.Assignee.Name)
 		return 0, err
@@ -189,7 +181,7 @@ func (dbp *DbPusher) PushIssue(project structures.DBProject, issue datatransform
 	return issueId, nil
 }
 
-func (dbp *DbPusher) PushIssues(project structures.DBProject, issues []datatransformer.DataTransformer) error {
+func (dbp *DbPusher) PushIssues(project *structures.DBProject, issues []datatransformer.DataTransformer) error {
 	tx, err := dbp.db.Begin()
 	if err != nil {
 		ansErr := fmt.Errorf("%w: %w", myerr.ErrTranBegin, err)
@@ -198,7 +190,7 @@ func (dbp *DbPusher) PushIssues(project structures.DBProject, issues []datatrans
 	}
 
 	for _, issue := range issues {
-		issueId, err := dbp.PushIssue(project, issue)
+		issueId, err := dbp.PushIssue(project, &issue)
 		if err != nil {
 			ansErr := fmt.Errorf("%w - %s: %w", myerr.ErrPushIssue, project.Title, err)
 			dbp.log.Error(ansErr.Error())
@@ -206,7 +198,7 @@ func (dbp *DbPusher) PushIssues(project structures.DBProject, issues []datatrans
 			return ansErr
 		}
 
-		if err := dbp.PushStatusChanges(issueId, issue); err != nil {
+		if err := dbp.PushStatusChanges(issueId, &issue); err != nil {
 			ansErr := fmt.Errorf("%w: %w", myerr.ErrInsertStatusChange, err)
 			dbp.log.Error(ansErr.Error(), "project", project)
 			tx.Rollback()
@@ -224,7 +216,7 @@ func (dbp *DbPusher) PushIssues(project structures.DBProject, issues []datatrans
 	return nil
 }
 
-func (dbp *DbPusher) getAuthorId(author structures.DBAuthor) (int, error) {
+func (dbp *DbPusher) getAuthorId(author *structures.DBAuthor) (int, error) {
 	var authorId int
 	var err error
 	query := "SELECT id FROM author WHERE name=$1"
@@ -243,7 +235,7 @@ func (dbp *DbPusher) getAuthorId(author structures.DBAuthor) (int, error) {
 	return authorId, nil
 }
 
-func (dbp *DbPusher) getProjectId(project structures.DBProject) (int, error) {
+func (dbp *DbPusher) getProjectId(project *structures.DBProject) (int, error) {
 	var projectId int
 	var err error
 	query := "SELECT id FROM projects WHERE title=$1"

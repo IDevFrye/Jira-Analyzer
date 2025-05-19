@@ -32,11 +32,11 @@ func TestLoadNewProject(t *testing.T) {
 	assert.Equal(t, 0, count, "Project should not exist before test")
 
 	// 2. Загружаем проект
-	_, err = testDB.PushProject(testProject)
+	_, err = testDB.PushProject(&testProject)
 	assert.NoError(t, err)
 
 	// 3. Загружаем задачи
-	err = testDB.PushIssues(testProject, testIssues)
+	err = testDB.PushIssues(&testProject, testIssues)
 	assert.NoError(t, err)
 
 	// 4. Проверяем, что проект и задачи сохранились
@@ -64,10 +64,10 @@ func TestUpdateExistingProject(t *testing.T) {
 
 	testIssue, testProject := setupTestData()
 
-	_, err = testDB.PushProject(testProject)
+	_, err = testDB.PushProject(&testProject)
 	assert.NoError(t, err)
 
-	err = testDB.PushIssues(testProject, testIssue)
+	err = testDB.PushIssues(&testProject, testIssue)
 	assert.NoError(t, err)
 
 	// 2. Подготавливаем обновленные данные
@@ -75,7 +75,7 @@ func TestUpdateExistingProject(t *testing.T) {
 
 	// 3. Обновляем проект (симулируем вызов /updateProject)
 	// обновляем задачи
-	err = testDB.PushIssues(testProject, updatedIssues)
+	err = testDB.PushIssues(&testProject, updatedIssues)
 	assert.NoError(t, err)
 
 	// 4. Проверяем результаты
@@ -101,10 +101,10 @@ func TestProjectEdgeCases(t *testing.T) {
 		project := structures.DBProject{Title: "Test"}
 
 		// Первое сохранение должно пройти успешно
-		_, err := DB.PushProject(project)
+		_, err := DB.PushProject(&project)
 		assert.NoError(t, err)
 
-		_, err = DB.PushProject(project)
+		_, err = DB.PushProject(&project)
 		assert.Error(t, err, "Should reject duplicate project title")
 	})
 }

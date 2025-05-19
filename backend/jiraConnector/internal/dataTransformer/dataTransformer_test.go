@@ -97,7 +97,7 @@ func TestTransformStatusDB(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := dt.TransformStatusDB(tt.input)
+			result := dt.TransformStatusDB(&tt.input)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -125,7 +125,7 @@ func TestTransformAuthorDB(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := dt.TransformAuthorDB(tt.input)
+			result := dt.TransformAuthorDB(&tt.input)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -153,7 +153,7 @@ func TestTransformProjectDB(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := dt.TransformProjectDB(tt.input)
+			result := dt.TransformProjectDB(&tt.input)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -223,7 +223,7 @@ func TestTransformIssueDB(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := dt.TransformIssueDB(tt.input)
+			result := dt.TransformIssueDB(&tt.input)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -277,7 +277,7 @@ func TestTransformToDbIssueSet(t *testing.T) {
 	}
 
 	dt := NewDataTransformer("base_url")
-	result := dt.TransformToDbIssueSet(structures.JiraProject{Name: "TestProject"}, inputIssue)
+	result := dt.TransformToDbIssueSet(&structures.JiraProject{Name: "TestProject"}, &inputIssue)
 
 	assert.Equal(t, expected.Project, result.Project)
 	assert.Equal(t, expected.Issue.Key, result.Issue.Key)

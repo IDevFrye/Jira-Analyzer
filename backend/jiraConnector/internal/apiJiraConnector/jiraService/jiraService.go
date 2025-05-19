@@ -16,22 +16,23 @@ type JiraConnectorInterface interface {
 	GetAllProjects() ([]structures.JiraProject, error)
 	GetProjectsPage(search string, limit, page int) (*structures.ResponseProject, error)
 	GetProjectIssues(project string) ([]structures.JiraIssue, error)
+	GetProjectByKey(projectKey string) (*structures.JiraProject, error)
 }
 
 type DataTransformerInterface interface {
-	TransformStatusDB(jiraChanges structures.Changelog) map[string]structures.DBStatusChanges
-	TransformAuthorDB(jiraAuthor structures.User) structures.DBAuthor
-	TransformProjectDB(jiraProject structures.JiraProject) structures.DBProject
-	TransformIssueDB(jiraIssue structures.JiraIssue) structures.DBIssue
-	TransformToDbIssueSet(project structures.JiraProject, jiraIssue structures.JiraIssue) *datatransformer.DataTransformer
+	TransformStatusDB(jiraChanges *structures.Changelog) map[string]structures.DBStatusChanges
+	TransformAuthorDB(jiraAuthor *structures.User) *structures.DBAuthor
+	TransformProjectDB(jiraProject *structures.JiraProject) *structures.DBProject
+	TransformIssueDB(jiraIssue *structures.JiraIssue) *structures.DBIssue
+	TransformToDbIssueSet(project *structures.JiraProject, jiraIssue *structures.JiraIssue) *datatransformer.DataTransformer
 }
 
 type DbPusherInterface interface {
-	PushProject(project structures.DBProject) (int, error)
+	PushProject(project *structures.DBProject) (int, error)
 	PushProjects(projects []structures.DBProject) error
-	PushStatusChanges(issue int, changes datatransformer.DataTransformer) error
-	PushIssue(project structures.DBProject, issue datatransformer.DataTransformer) (int, error)
-	PushIssues(project structures.DBProject, issues []datatransformer.DataTransformer) error
+	PushStatusChanges(issue int, changes *datatransformer.DataTransformer) error
+	PushIssue(project *structures.DBProject, issue *datatransformer.DataTransformer) (int, error)
+	PushIssues(project *structures.DBProject, issues []datatransformer.DataTransformer) error
 	Close()
 }
 
@@ -65,10 +66,15 @@ func (js *JiraService) UpdateProjects(projectId string) ([]structures.JiraIssue,
 	return js.jiraConnector.GetProjectIssues(projectId)
 }
 
-func (js *JiraService) PushDataToDb(project structures.JiraProject, issues []structures.JiraIssue) error {
-	data := js.TransformDataToDb(project, issues)
-	prj := js.dataTransformer.TransformProjectDB(project)
-	if err := js.dbPusher.PushIssues(prj, data); err != nil {
+func (js *JiraService) PushDataToDb(project string, issues []structures.JiraIssue) error {
+	prj, err := js.jiraConnector.GetProjectByKey(project)
+	if err != nil {
+		js.log.Error("error Get Project By Key", logger.Err(err))
+		return fmt.Errorf("%w", err)
+	}
+	data := js.TransformDataToDb(prj, issues)
+	prjDB := js.dataTransformer.TransformProjectDB(prj)
+	if err := js.dbPusher.PushIssues(prjDB, data); err != nil {
 		js.log.Error("error push issues", logger.Err(err))
 		return fmt.Errorf("%w", err)
 	}
@@ -79,11 +85,11 @@ func (js *JiraService) PushDataToDb(project structures.JiraProject, issues []str
 
 }
 
-func (js *JiraService) TransformDataToDb(project structures.JiraProject, issues []structures.JiraIssue) []datatransformer.DataTransformer {
+func (js *JiraService) TransformDataToDb(project *structures.JiraProject, issues []structures.JiraIssue) []datatransformer.DataTransformer {
 	var issuesDb []datatransformer.DataTransformer
 
 	for _, issue := range issues {
-		issuesDb = append(issuesDb, *js.dataTransformer.TransformToDbIssueSet(project, issue))
+		issuesDb = append(issuesDb, *js.dataTransformer.TransformToDbIssueSet(project, &issue))
 	}
 
 	js.log.Info("transform data for db", "project", project)

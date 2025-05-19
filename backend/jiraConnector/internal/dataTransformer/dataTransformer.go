@@ -21,7 +21,7 @@ func NewDataTransformer(baseUrl string) *DataTransformer {
 	return &DataTransformer{baseUrl: baseUrl}
 }
 
-func (dt *DataTransformer) TransformStatusDB(jiraChanges structures.Changelog) map[string]structures.DBStatusChanges {
+func (dt *DataTransformer) TransformStatusDB(jiraChanges *structures.Changelog) map[string]structures.DBStatusChanges {
 	statusChanges := make(map[string]structures.DBStatusChanges)
 	for _, history := range jiraChanges.Histories {
 		for _, item := range history.Items {
@@ -38,28 +38,29 @@ func (dt *DataTransformer) TransformStatusDB(jiraChanges structures.Changelog) m
 	return statusChanges
 }
 
-func (dt *DataTransformer) TransformAuthorDB(jiraAuthor structures.User) structures.DBAuthor {
-	return structures.DBAuthor{
+func (dt *DataTransformer) TransformAuthorDB(jiraAuthor *structures.User) *structures.DBAuthor {
+	return &structures.DBAuthor{
 		Name: jiraAuthor.Name,
 	}
 }
 
-func (dt *DataTransformer) TransformProjectDB(jiraProject structures.JiraProject) structures.DBProject {
+func (dt *DataTransformer) TransformProjectDB(jiraProject *structures.JiraProject) *structures.DBProject {
 	url := fmt.Sprintf("%s/projects/%s", dt.baseUrl, jiraProject.Name)
 	url = strings.Replace(url, " ", "_", -1)
-	return structures.DBProject{
+	return &structures.DBProject{
 		Title: jiraProject.Name,
+		Key:   jiraProject.Key,
 		Url:   url,
 	}
 }
 
-func (dt *DataTransformer) TransformIssueDB(jiraIssue structures.JiraIssue) structures.DBIssue {
+func (dt *DataTransformer) TransformIssueDB(jiraIssue *structures.JiraIssue) *structures.DBIssue {
 	layout := "2006-01-02T15:04:05.000-0700"
 	createdTime, _ := time.Parse(layout, jiraIssue.Fields.CreatedTime)
 	updatedTime, _ := time.Parse(layout, jiraIssue.Fields.UpdatedTime)
 	closedTime, _ := time.Parse(layout, jiraIssue.Fields.ClosedTime)
 
-	return structures.DBIssue{
+	return &structures.DBIssue{
 		Key:         jiraIssue.Key,
 		Summary:     jiraIssue.Fields.Summary,
 		Description: jiraIssue.Fields.Description,
@@ -73,12 +74,12 @@ func (dt *DataTransformer) TransformIssueDB(jiraIssue structures.JiraIssue) stru
 	}
 }
 
-func (dt *DataTransformer) TransformToDbIssueSet(project structures.JiraProject, jiraIssue structures.JiraIssue) *DataTransformer {
+func (dt *DataTransformer) TransformToDbIssueSet(project *structures.JiraProject, jiraIssue *structures.JiraIssue) *DataTransformer {
 	return &DataTransformer{
-		Project:       dt.TransformProjectDB(project),
-		Issue:         dt.TransformIssueDB(jiraIssue),
-		Author:        dt.TransformAuthorDB(jiraIssue.Fields.Author),
-		Assignee:      dt.TransformAuthorDB(jiraIssue.Fields.Assignee),
-		StatusChanges: dt.TransformStatusDB(jiraIssue.Changelog),
+		Project:       *dt.TransformProjectDB(project),
+		Issue:         *dt.TransformIssueDB(jiraIssue),
+		Author:        *dt.TransformAuthorDB(&jiraIssue.Fields.Author),
+		Assignee:      *dt.TransformAuthorDB(&jiraIssue.Fields.Assignee),
+		StatusChanges: dt.TransformStatusDB(&jiraIssue.Changelog),
 	}
 }

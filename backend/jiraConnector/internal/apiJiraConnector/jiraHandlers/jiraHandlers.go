@@ -20,8 +20,8 @@ type JiraServiceInterface interface {
 	GetProjectsPage(search string, limit, page int) (*structures.ResponseProject, error)
 	UpdateProjects(projectId string) ([]structures.JiraIssue, error)
 
-	PushDataToDb(project structures.JiraProject, issues []structures.JiraIssue) error
-	TransformDataToDb(project structures.JiraProject, issues []structures.JiraIssue) []datatransformer.DataTransformer
+	PushDataToDb(project string, issues []structures.JiraIssue) error
+	TransformDataToDb(project *structures.JiraProject, issues []structures.JiraIssue) []datatransformer.DataTransformer
 }
 
 type handler struct {
@@ -97,7 +97,7 @@ func (h *handler) updateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.PushDataToDb(structures.JiraProject{Name: project}, issues); err != nil {
+	if err := h.service.PushDataToDb(project, issues); err != nil {
 		responseutils.WriteError(w, h.log, myErr.GetStatusCode(myErr.ErrorsUpdate, myErr.ErrPushProject), myErr.ErrPushProject.Error(), err)
 		return
 	}

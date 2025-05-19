@@ -33,6 +33,34 @@ func NewJiraConnector(config *config.Config, log *slog.Logger) *JiraConnector {
 	}
 }
 
+func (con *JiraConnector) GetProjectByKey(projectKey string) (*structures.JiraProject, error) {
+	url := fmt.Sprintf("%s/rest/api/2/project/%s", con.cfg.Url, projectKey)
+
+	resp, err := con.retryRequest("GET", url)
+	if err != nil {
+		con.log.Error("err retry request", logger.Err(err), "url", url)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		ansErr := fmt.Errorf("%w: %w", myErr.ErrReadResponseBody, err)
+		con.log.Error(ansErr.Error(), "url", url)
+		return nil, ansErr
+	}
+
+	var project structures.JiraProject
+	if err = json.Unmarshal(body, &project); err != nil {
+		ansErr := fmt.Errorf("%w: %w", myErr.ErrUnmarshalAns, err)
+		con.log.Error(ansErr.Error(), "url", url)
+		return nil, ansErr
+	}
+
+	con.log.Info("success get all project from", "key", projectKey)
+	return &project, nil
+}
+
 func (con *JiraConnector) GetAllProjects() ([]structures.JiraProject, error) {
 	url := fmt.Sprintf("%s/rest/api/2/project", con.cfg.Url)
 
