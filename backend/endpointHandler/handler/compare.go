@@ -2,11 +2,12 @@ package handler
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/endpointhandler/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
-	"net/http"
-	"strings"
 )
 
 func parseProjectKeys(c *gin.Context) ([]string, error) {
