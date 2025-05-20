@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package workflowintegrations
 
 import (
@@ -46,7 +49,7 @@ func TestFullIntegration(t *testing.T) {
 		// Проверяем БД
 		var projectCount int
 		err = testDB.QueryRow(
-			"SELECT COUNT(*) FROM projects WHERE title = $1", projectKey,
+			"SELECT COUNT(*) FROM projects WHERE key = $1", projectKey,
 		).Scan(&projectCount)
 		require.NoError(t, err)
 		assert.Equal(t, 1, projectCount)

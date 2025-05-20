@@ -1,0 +1,13 @@
+services:
+  backend-test:
+    build:
+      context: ../backend/endpointHandler
+      dockerfile: Dockerfile.test
+    depends_on:
+      - postgres
+      - jiraconnector
+      - backend
+    volumes:
+      - ../backend/endpointHandler:/app
+    networks:
+      - jiraApp

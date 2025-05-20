@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package workflowintegrations
 
 import (
@@ -111,7 +114,7 @@ func setupTestDB(cfg *config.Config, log *slog.Logger) (testcontainers.Container
 
 	_, filename, _, _ := runtime.Caller(0)
 	projectRoot := filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(filename))))
-	sqlPath := filepath.Join(projectRoot, "deployment", sqlCreatePath)
+	sqlPath := filepath.Join(projectRoot, "build", sqlCreatePath)
 	sqlBytes, err := os.ReadFile(sqlPath)
 	if err != nil {
 		panic(fmt.Errorf("failed to read create.sql: %w", err))
@@ -150,6 +153,10 @@ func setupMockJira() *httptest.Server {
 		case r.URL.Path == "/rest/api/2/project":
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(projects)
+
+		case r.URL.Path == "/rest/api/2/project/TEST1":
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(projects[0])
 
 		case strings.Contains(r.URL.Path, "/rest/api/2/search"):
 			projectKey := strings.TrimPrefix(r.URL.Query().Get("jql"), "project=")

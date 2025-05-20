@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package dbintegrations
 
 import (
@@ -25,7 +28,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	containerReq := testcontainers.ContainerRequest{
-		Image:        "postgres:15",
+		Image:        "postgres:latest",
 		ExposedPorts: []string{"5432/tcp"},
 		Env: map[string]string{
 			"POSTGRES_USER":     "testuser",
@@ -69,7 +72,7 @@ func TestMain(m *testing.M) {
 
 	_, filename, _, _ := runtime.Caller(0)
 	projectRoot := filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(filename))))
-	sqlPath := filepath.Join(projectRoot, "deployment", sqlCreatePath)
+	sqlPath := filepath.Join(projectRoot, "build", sqlCreatePath)
 	sqlBytes, err := os.ReadFile(sqlPath)
 	if err != nil {
 		panic(fmt.Errorf("failed to read create.sql: %w", err))
@@ -93,7 +96,7 @@ func resetTestDB(t *testing.T) {
 	// Повторно применяем миграции
 	_, filename, _, _ := runtime.Caller(0)
 	projectRoot := filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(filename))))
-	sqlPath := filepath.Join(projectRoot, "deployment", sqlCreatePath)
+	sqlPath := filepath.Join(projectRoot, "build", sqlCreatePath)
 	sqlBytes, err := os.ReadFile(sqlPath)
 	require.NoError(t, err)
 

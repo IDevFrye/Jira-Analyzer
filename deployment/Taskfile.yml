@@ -12,18 +12,20 @@ tasks:
   unit-test:
     desc: Юнит-тесты Go (В ПРОЦЕССЕ РАЗРАБОТКИ)
     cmds:
-      - echo "ПОКА НЕ РАБОТАЕТ"
-      #- docker compose run --rm deployment-backend-1 go test ./...
-      #- docker compose run --rm deployment-jiraconnector-1 go test ./...
+      - echo "Запуск юнит-тестов эндпоинтов ПОКА НЕ РАБОТАЕТ"
+      #- docker compose run --rm backend go test ./... -v
+
+      - echo "Запуск юнит-тестов коннектора ПОКА НЕ РАБОТАЕТ"
+      #- docker compose run --rm jiraconnector go test ./... -v
 
   integration-test:
-    desc: Интеграционные тесты (В ПРОЦЕССЕ РАЗРАБОТКИ)
+    desc: Интеграционные тесты
     cmds:
-      - echo "ПОКА НЕ РАБОТАЕТ"
-      #- docker compose up -d  deployment-postgres-1  deployment-jiraconnector-1  deployment-backend-1
-      #- sleep 5
-      #- docker compose run --rm deployment-backend-1 go test ./tests/integration/...
-      #- docker compose run --rm deployment-jiraconnector-1 go test ./tests/integration/...
+      # Запуск интеграционных тестов для коннектора
+      - docker compose run --rm jiraconnector go test ./tests/integration/... -v -tags=integration
+
+      # Запуск интеграционных тестов для всей системы
+      - docker compose run --rm backend-test
 
   up:
     desc: Запуск приложения
@@ -47,7 +49,6 @@ tasks:
     desc: Полная очистка контейнеров и мусора
     cmds:
       - docker compose down -v --remove-orphans
-      - docker system prune -f
 
   logs:
     desc: Логи всех сервисов (кроме коннектора :D)
@@ -58,3 +59,8 @@ tasks:
     desc: Логи jira-connector
     cmds:
       - docker exec -it deployment-jiraconnector-1 cat log/jiraconnector.log
+  
+  db:
+    desc: Консоль базы данных
+    cmds:
+      - docker exec -it deployment-postgres-1 psql -U postgres -d testdb

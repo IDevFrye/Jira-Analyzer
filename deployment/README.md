@@ -13,6 +13,7 @@ task down               # Остановить контейнеры
 task clean              # Полная очистка
 task logs               # Просмотр логов
 task logs-connector     # Просмотр логов коннетора
+task db             	# Консоль базы данных
 task all                # Полный пайплайн сборки-тестирования-запуска
 ```
 ---
@@ -26,6 +27,7 @@ make down               # Остановить
 make clean              # Удалить контейнеры и тома
 make logs               # Логи всех сервисов
 make logs-connector     # Просмотр логов коннетора
+make db             	# Консоль базы данных
 make all                # Полный пайплайн сборки-тестирования-запуска
 ```
 ---
@@ -37,21 +39,27 @@ make all                # Полный пайплайн сборки-тести�
 # Сборка и запуск
 docker compose up --build -d
 
-# Юнит тесты
+# Запуск юнит-тестов эндпоинтов
 docker compose run --rm backend go test ./... -v
+# Запуск юнит-тестов коннектора
+docker compose run --rm jiraconnector go test ./... -v
 
-# Интеграционные тесты
-docker compose run --rm backend go test -tags=integration ./... -v
+# Запуск интеграционных тестов для коннектора
+docker compose run --rm jiraconnector go test ./tests/integration/... -v -tags=integration
+# Запуск интеграционных тестов для всей системы
+docker compose run --rm backend-test
 
 # Остановка и удаление
 docker compose down
 
 # Полная очистка
 docker compose down -v --remove-orphans
-docker system prune -f
 
 # Логи
 docker compose logs -f
 docker exec -it deployment-jiraconnector-1 cat log/jiraconnector.log
+
+# Состояние базы данных
+docker exec -it deployment-postgres-1 psql -U postgres -d testdb
 ```
 ---

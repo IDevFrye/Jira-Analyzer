@@ -25,8 +25,11 @@ services:
       - postgres
     environment:
       - CONFIG_PATH=${CONFIG_PATH}
+      - TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
     ports:
       - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     
     networks:
       - jiraApp
