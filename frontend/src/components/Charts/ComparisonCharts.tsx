@@ -3,6 +3,33 @@ import { Bar, Pie, Doughnut } from 'react-chartjs-2';
 import './ComparisonCharts.scss';
 import { config } from '../../config/config';
 import axios from 'axios';
+import { darken, lighten } from 'polished';
+
+const BASE_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#06b6d4', '#8b5cf6', '#ec4899'];
+
+function getBaseColorMap(keys: string[]): Record<string, string> {
+  const map: Record<string, string> = {};
+  keys.forEach((key, index) => {
+    map[key] = BASE_COLORS[index % BASE_COLORS.length];
+  });
+  return map;
+}
+
+function generateShadedColors(baseMap: Record<string, string>, projectIndex: number, totalProjects: number): string[] {
+  return Object.keys(baseMap).map(label => {
+    const base = baseMap[label];
+    if (projectIndex === 0) return base;
+
+    const factor =  0.35 * (projectIndex / Math.max(1, totalProjects - 1));
+    try {
+      const shaded = lighten(factor, base);
+      return shaded || base;
+    } catch {
+      return base;
+    }
+  });
+}
+
 
 interface ComparisonChartProps {
   data: {
@@ -216,7 +243,7 @@ export const StatusDistributionComparisonChart: React.FC<{ projectKeys: string[]
         const response = await axios.get<StatusDistributionData>(config.api.endpoints.compareStatusDistribution, {
           params: { key: projectKeys.join(',') }
         });
-        
+
         const projectData = response.data;
         if (!projectData || Object.keys(projectData).length === 0) {
           throw new Error('Нет данных о статусах задач');
@@ -228,20 +255,19 @@ export const StatusDistributionComparisonChart: React.FC<{ projectKeys: string[]
           statuses.forEach(status => allStatuses.add(status));
         });
         const statuses = Array.from(allStatuses);
-        
-        const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'];
-        
+        const baseMap = getBaseColorMap(statuses);
+
         const chartData: ChartData = {
           labels: statuses,
           datasets: projectKeys.map((key, i) => ({
             label: key,
             data: statuses.map(status => projectData[key]?.[status] || 0),
-            backgroundColor: colors[i % colors.length],
+            backgroundColor: generateShadedColors(baseMap, i, projectKeys.length),
             borderColor: '#fff',
             borderWidth: 2
           }))
         };
-        
+
         setData(chartData);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
@@ -353,7 +379,7 @@ export const PriorityComparisonChart: React.FC<{ projectKeys: string[] }> = ({ p
         const response = await axios.get<PriorityData>(config.api.endpoints.comparePriority, {
           params: { key: projectKeys.join(',') }
         });
-        
+
         const projectData = response.data;
         if (!projectData || Object.keys(projectData).length === 0) {
           throw new Error('Нет данных о приоритетах');
@@ -365,20 +391,19 @@ export const PriorityComparisonChart: React.FC<{ projectKeys: string[] }> = ({ p
           priorities.forEach(priority => allPriorities.add(priority));
         });
         const priorities = Array.from(allPriorities);
-        
-        const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16'];
-        
+        const baseMap = getBaseColorMap(priorities);
+
         const chartData: ChartData = {
           labels: priorities,
           datasets: projectKeys.map((key, i) => ({
             label: key,
             data: priorities.map(priority => projectData[key]?.[priority] || 0),
-            backgroundColor: colors[i % colors.length],
+            backgroundColor: generateShadedColors(baseMap, i, projectKeys.length),
             borderColor: '#fff',
             borderWidth: 2
           }))
         };
-        
+
         setData(chartData);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Неизвестная ошибка');

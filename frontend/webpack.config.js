@@ -61,19 +61,27 @@ module.exports = {
       template: './public/index.html',
       favicon: './public/favicon.png'
     }),
-    new Dotenv(), // Добавляем поддержку .env файлов
+    new Dotenv(),
     new webpack.DefinePlugin({
+      //Для продакшена
+      // 'process.env.REACT_APP_API_BASE_URL': JSON.stringify(process.env.REACT_APP_API_BASE_URL || '/api')
+
       'process.env.REACT_APP_API_BASE_URL': JSON.stringify(process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000')
     })
   ],
   devServer: {
     port: 3000,
+
+    //Для продакшена
+    //port: 80,
     hot: true,
     open: true,
     historyApiFallback: true,
     proxy: [{
       context: ['/api'],
       target: 'http://localhost:8000',
+      //Для продакшена
+      //target: 'http://backend:8000',
       changeOrigin: true,
       secure: false
     }]

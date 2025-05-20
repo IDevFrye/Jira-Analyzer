@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use '../../styles/variables' as v;
 
 .projects-container {
@@ -132,7 +133,7 @@
       gap: 0.5rem;
 
       &:hover:not(:disabled) {
-        background-color: darken(v.$primary-color, 10%);
+        background-color: color.adjust(v.$primary-color, $lightness: -10%);
         transform: translateY(-2px);
       }
 
@@ -238,7 +239,7 @@
       gap: 0.5rem;
 
       &:hover {
-        background-color: darken(v.$primary-color, 10%);
+        background-color: color.adjust(v.$primary-color, $lightness: -10%);
         transform: translateY(-2px);
       }
     }

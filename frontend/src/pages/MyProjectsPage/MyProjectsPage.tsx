@@ -113,6 +113,9 @@ const MyProjectsPage: React.FC = () => {
               projectKey={project.Key}
               projectName={project.Name}
               projectId={project.Id}
+              onDelete={() => {
+                setProjects(prev => prev.filter(p => p.Id !== project.Id));
+              }}
             />
           ))}
         </div>

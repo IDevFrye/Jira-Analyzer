@@ -1,7 +1,8 @@
+@use 'sass:color';
 @use '../../styles/variables' as v;
 
 .header {
-  background: linear-gradient(135deg, v.$primary-color 0%, darken(v.$primary-color, 50%) 100%);
+  background: linear-gradient(135deg, v.$primary-color 0%, color.adjust(v.$primary-color, $lightness: -50%) 100%);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   width: 100%;
   z-index: 100;
@@ -16,8 +17,6 @@
 
   &-nav {
     padding: 0 v.$spacing-xl;
-    // max-width: 1400px;
-    // margin: 0 auto;
     display: flex;
     align-items: center;
   }
@@ -25,9 +24,6 @@
   &-logo {
     height: 50px;
     width: 50px;
-    // margin-top: 5px;
-    // margin-right: 15px;
-    // margin-right: v.$spacing-lg;
     transition: all 0.3s ease;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 
@@ -51,7 +47,6 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    // justify-content: center;
     margin: 0 20px;
     align-items: center;
   }
@@ -60,17 +55,9 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    // justify-content: center;
     margin: 0 20px;
     align-items: center;
   }
-
-  // &-title {
-  //   color: rgba(white, 0.9);
-  //   font-weight: 700;
-  //   margin-right: 10px;
-  //   font-size: 30px;
-  // }
 
   &-item {
     position: relative;
@@ -175,7 +162,6 @@
   }
 }
 
-// Анимация при прокрутке
 .scrolled {
   .header {
     background: rgba(v.$primary-color, 0.95);
@@ -189,11 +175,10 @@
   }
 }
 
-// Aurora gradient animation styles
 .header-title {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, v.$primary-color 0%, darken(v.$primary-color, 50%) 100%);
+  background: linear-gradient(135deg, v.$primary-color 0%, color.adjust(v.$primary-color, $lightness: -50%) 100%);
   margin: 0;
   font-weight: 800;
   font-size: 30px;

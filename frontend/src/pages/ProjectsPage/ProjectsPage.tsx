@@ -44,51 +44,55 @@ const ProjectsPage: React.FC = () => {
     fetchProjects();
   }, [page, search]);
 
-  // Загрузка добавленных проектов
   useEffect(() => {
     const fetchAddedProjects = async () => {
       try {
         const res = await axios.get(config.api.endpoints.projects);
-        // Явно указываем тип для данных
-        const addedKeys = new Set<string>(res.data.map((p: { key: string }) => p.key));
-        setAddedProjects(addedKeys);
+        const addedNames = new Set<string>(
+          res.data.map((p: { name: string, key: string }) => p.key)
+        );
+        console.log(addedNames)
+        setAddedProjects(addedNames);
       } catch (error) {
         console.error("Error fetching added projects:", error);
       }
     };
-  
     fetchAddedProjects();
   }, []);
 
-  // Обработчик действий с проектом
-  const handleProjectAction = async (projectKey: string, action: 'add' | 'remove') => {
+  const handleProjectAction = async (projectName: string, action: 'add' | 'remove') => {
     try {
       if (action === 'remove') {
-        const { data } = await axios.get<Array<{ id: string; key: string }>>(config.api.endpoints.projects);
-        const projectToDelete = data.find((p) => p.key === projectKey);
-        
+        const { data } = await axios.get<Array<{ id: string; name: string, key: string,  self: string }>>(config.api.endpoints.projects);
+        const projectToDelete = data.find((p) => {
+          return p.key === projectName;
+          
+        });
+
         if (projectToDelete) {
           await axios.delete(config.api.endpoints.deleteProject(Number(projectToDelete.id)));
         }
-  
         setAddedProjects(prev => {
-          const newSet = new Set<string>(prev); // Явно указываем тип Set<string>
-          newSet.delete(projectKey);
+          const newSet = new Set<string>(prev);
+          newSet.delete(projectName);
           return newSet;
         });
       } else {
         await axios.post(
           config.api.endpoints.updateProject,
           null,
-          { params: { project: projectKey } }
+          { params: { project: projectName } }
         );
-        setAddedProjects(prev => new Set<string>(prev).add(projectKey)); // Явно указываем тип
+        setAddedProjects(prev => {
+          const newSet = new Set<string>(prev);
+          newSet.add(projectName);
+          return newSet;
+        });
       }
     } catch (error) {
       console.error('Action failed:', error);
       alert(`Не удалось ${action === 'add' ? 'добавить' : 'удалить'} проект`);
-      // Принудительно обновляем состояние с явным указанием типа
-      const { data } = await axios.get<Array<{ key: string }>>(config.api.endpoints.projects);
+      const { data } = await axios.get<Array<{ name: string, key: string }>>(config.api.endpoints.projects);
       setAddedProjects(new Set<string>(data.map(p => p.key)));
     }
   };

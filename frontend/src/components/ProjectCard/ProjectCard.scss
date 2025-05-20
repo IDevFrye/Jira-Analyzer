@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use '../../styles/variables' as v;
 
 .project-card {
@@ -46,7 +47,7 @@
       background-color: v.$primary-color;
 
       &:hover:not(:disabled) {
-        background-color: darken(v.$primary-color, 10%);
+        background-color: color.adjust(v.$primary-color, $lightness: -10%);
       }
     }
 
@@ -54,7 +55,7 @@
       background-color: v.$error-color;
 
       &:hover:not(:disabled) {
-        background-color: darken(v.$error-color, 10%);
+        background-color: color.adjust(v.$error-color, $lightness: -10%);
       }
     }
   }
@@ -103,7 +104,7 @@
     gap: 0.5rem;
 
     &:hover {
-      color: darken(v.$primary-color, 15%);
+      color: color.adjust(v.$primary-color, $lightness: -15%);
       text-decoration: underline;
     }
 
@@ -129,7 +130,7 @@
     white-space: nowrap;
 
     &:hover {
-      background-color: darken(v.$primary-color, 10%);
+      background-color: color.adjust(v.$primary-color, $lightness: -10%);
     }
 
     &:active {

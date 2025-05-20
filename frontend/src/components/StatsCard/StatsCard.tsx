@@ -34,9 +34,10 @@ interface StatsCardProps {
   projectId: string;
   projectName: string;
   projectKey: string;
+  onDelete?: () => void;
 }
 
-const StatsCard: React.FC<StatsCardProps> = ({ projectId, projectName, projectKey }) => {
+const StatsCard: React.FC<StatsCardProps> = ({ projectId, projectName, projectKey, onDelete }) => {
   const [stats, setStats] = useState<ProjectStats | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -202,10 +203,29 @@ const StatsCard: React.FC<StatsCardProps> = ({ projectId, projectName, projectKe
           <FaChartBar className="analytics-icon" />
           Показать аналитику
         </button>
+
+        <button 
+          className="delete-button"
+          onClick={async () => {
+            try {
+              if (!window.confirm(`Удалить проект "${projectName}"?`)) return;
+              await axios.delete(config.api.endpoints.deleteProject(Number(projectId)));
+              alert(`Проект "${projectName}" удалён`);
+              onDelete?.(); // ✅ Вызов пропа
+            } catch (err) {
+              console.error('Ошибка при удалении проекта:', err);
+              alert('Не удалось удалить проект');
+            }
+          }}
+        >
+          Удалить проект
+        </button>
+
+
       </div>
       
       <Modal isOpen={showAnalytics} onClose={() => setShowAnalytics(false)}>
-        {projectKey && <ChartSelector projectKey={projectKey} />}
+        {projectName && <ChartSelector projectKey={projectName} />}
       </Modal>
     </>
   );

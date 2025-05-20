@@ -68,7 +68,7 @@ const TimeOpenChart: React.FC<TimeOpenChartProps> = ({ projectKey }) => {
           text: 'Количество задач'
         },
         ticks: {
-          stepSize: 1 // Чтобы значения были целыми числами
+          stepSize: 1
         }
       },
       x: {

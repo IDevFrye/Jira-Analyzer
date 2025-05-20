@@ -19,13 +19,6 @@ const CompareSelector: React.FC<CompareSelectorProps> = ({
         <h3>Доступные проекты</h3>
         <ul>
           {projects.map(project => (
-            // <li 
-            //   key={project.Id}
-            //   className={selectedProjects.some(p => p.Id === project.Id) ? 'selected' : ''}
-            //   onClick={() => onSelect(project)}
-            // >
-            //   {project.Name} ({project.Key})
-            // </li>
             <li 
               key={project.Id} 
               className={selectedProjects.some(p => p.Id === project.Id) ? 'selected' : ''}

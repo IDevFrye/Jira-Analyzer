@@ -7,8 +7,9 @@ import {
 } from '../Charts/ComparisonCharts';
 import './CompareCharts.scss';
 
+
 interface CompareChartsProps {
-  projects: { Key: string }[];
+  projects: { Name: string }[];
 }
 
 export type ChartType = 
@@ -32,7 +33,7 @@ const CompareCharts: React.FC<CompareChartsProps> = ({ projects }) => {
   const [chartType, setChartType] = useState<'timeOpen' | 'statusDistribution' | 'timeSpent' | 'priority'>('timeOpen');
   const [loading, setLoading] = useState(false);
 
-  const projectKeys = projects.map(p => p.Key);
+  const projectKeys = projects.map(p => p.Name);
 
   if (loading) return <div className="comparison-loading">Загрузка данных...</div>;
 

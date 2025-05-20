@@ -257,3 +257,22 @@
   padding: v.$spacing-lg;
   text-align: center;
 }
+
+.delete-button {
+  display: block;
+  width: 100%;
+  margin-top: v.$spacing-sm;
+  padding: 0.6rem;
+  background-color: rgba(#FF6B6B, 0.1);
+  border: 1px solid #FF6B6B;
+  color: #FF6B6B;
+  font-weight: 500;
+  border-radius: v.$rounded-md;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: rgba(#FF6B6B, 0.2);
+    transform: translateY(-2px);
+  }
+}
