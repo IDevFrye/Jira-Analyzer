@@ -10,6 +10,8 @@ type Project struct {
 type DBProject struct {
 	ID    int    `db:"id" json:"id"`
 	Title string `db:"title" json:"title"`
+	Key   string `db:"key" json:"key"`
+	Self  string `db:"url" json:"url"`
 }
 
 type UIProject struct {

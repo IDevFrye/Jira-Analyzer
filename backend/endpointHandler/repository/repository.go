@@ -68,7 +68,7 @@ func GetFilteredProjects(limit, offset int, search string) ([]model.UIProject, i
 
 func GetAllProjects() ([]model.Project, error) {
 	var dbProjects []model.DBProject
-	err := DB.Select(&dbProjects, "SELECT id, title FROM Projects")
+	err := DB.Select(&dbProjects, "SELECT * FROM Projects")
 	if err != nil {
 		return nil, err
 	}
@@ -78,9 +78,9 @@ func GetAllProjects() ([]model.Project, error) {
 	for _, p := range dbProjects {
 		result = append(result, model.Project{
 			ID:   strconv.Itoa(p.ID), // Преобразование int → string
-			Key:  p.Title,
+			Key:  p.Key,
 			Name: p.Title,
-			Self: fmt.Sprintf("https://issues.apache.org/jira/rest/api/2/project/%d", p.ID),
+			Self: p.Self,
 		})
 	}
 	return result, nil
