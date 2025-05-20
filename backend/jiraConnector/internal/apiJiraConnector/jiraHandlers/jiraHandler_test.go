@@ -188,7 +188,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 				mockService.On("UpdateProjects", tt.queryParam).Return(tt.mockIssues, tt.mockError)
 
 				if tt.mockError == nil {
-					mockService.On("PushDataToDb", structures.JiraProject{Name: tt.queryParam}, tt.mockIssues).Return(tt.pushError)
+					mockService.On("PushDataToDb", tt.queryParam, tt.mockIssues).Return(tt.pushError)
 				}
 			}
 

@@ -144,6 +144,7 @@ func TestPushDataToDb(t *testing.T) {
 			name: "success",
 			project: structures.JiraProject{
 				Name: "TEST",
+				Key:  "TEST-KEY",
 			},
 			issues: []structures.JiraIssue{
 				{Id: "1"},
@@ -176,20 +177,25 @@ func TestPushDataToDb(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockTransformer := new(MockDataTransformerInterface)
 			mockDbPusher := new(MockDbPusherInterface)
+			mockJiraConn := new(MockJiraConnectorInterface)
 
-			mockTransformer.On("TransformProjectDB", tt.project).
-				Return(structures.DBProject{Title: tt.project.Name, Url: fmt.Sprintf("/projects/%s", tt.project.Name)})
+			mockJiraConn.On("GetProjectByKey", tt.project.Name).
+				Return(&tt.project, nil)
+
+			mockTransformer.On("TransformProjectDB", &tt.project).
+				Return(&structures.DBProject{Title: tt.project.Name, Url: fmt.Sprintf("/projects/%s", tt.project.Name)})
 
 			for i, issue := range tt.issues {
-				mockTransformer.On("TransformToDbIssueSet", tt.project, issue).Return(tt.mockTransform[i])
+				mockTransformer.On("TransformToDbIssueSet", &tt.project, &issue).Return(tt.mockTransform[i])
 			}
 
 			mockDbPusher.On("PushIssues",
-				structures.DBProject{Title: tt.project.Name, Url: fmt.Sprintf("/projects/%s", tt.project.Name)},
+				&structures.DBProject{Title: tt.project.Name, Url: fmt.Sprintf("/projects/%s", tt.project.Name)},
 				mock.AnythingOfType("[]datatransformer.DataTransformer")).Return(tt.mockError)
 
 			service := JiraService{
 				dataTransformer: mockTransformer,
+				jiraConnector:   mockJiraConn,
 				dbPusher:        mockDbPusher,
 				log:             slog.Default(),
 			}
@@ -252,7 +258,7 @@ func TestTransformDataToDb(t *testing.T) {
 			mockTransformer := new(MockDataTransformerInterface)
 
 			for i, issue := range tt.issues {
-				mockTransformer.On("TransformToDbIssueSet", structures.JiraProject{Name: tt.project}, issue).Return(tt.mockTransforms[i])
+				mockTransformer.On("TransformToDbIssueSet", &structures.JiraProject{Name: tt.project}, &issue).Return(tt.mockTransforms[i])
 			}
 
 			service := JiraService{

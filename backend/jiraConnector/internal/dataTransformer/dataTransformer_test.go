@@ -107,17 +107,17 @@ func TestTransformAuthorDB(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    structures.User
-		expected structures.DBAuthor
+		expected *structures.DBAuthor
 	}{
 		{
 			name:     "regular user",
 			input:    structures.User{Name: "john.doe"},
-			expected: structures.DBAuthor{Name: "john.doe"},
+			expected: &structures.DBAuthor{Name: "john.doe"},
 		},
 		{
 			name:     "empty user",
 			input:    structures.User{},
-			expected: structures.DBAuthor{},
+			expected: &structures.DBAuthor{},
 		},
 	}
 
@@ -135,17 +135,17 @@ func TestTransformProjectDB(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    structures.JiraProject
-		expected structures.DBProject
+		expected *structures.DBProject
 	}{
 		{
 			name:     "regular project",
 			input:    structures.JiraProject{Name: "Project X"},
-			expected: structures.DBProject{Title: "Project X", Url: "/projects/Project_X"},
+			expected: &structures.DBProject{Title: "Project X", Url: "/projects/Project_X"},
 		},
 		{
 			name:     "empty project",
 			input:    structures.JiraProject{},
-			expected: structures.DBProject{Url: "/projects/"},
+			expected: &structures.DBProject{Url: "/projects/"},
 		},
 	}
 
@@ -171,7 +171,7 @@ func TestTransformIssueDB(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    structures.JiraIssue
-		expected structures.DBIssue
+		expected *structures.DBIssue
 	}{
 		{
 			name: "full issue data",
@@ -182,6 +182,7 @@ func TestTransformIssueDB(t *testing.T) {
 					Description: "Test description",
 					Type:        structures.IssueType{Description: "Task"},
 					Project:     structures.JiraProject{Name: "Project X"},
+					Priority:    structures.IssuePriority{Name: "Major"},
 					Status:      structures.IssueStatus{Name: "Done"},
 					CreatedTime: createdTime,
 					UpdatedTime: updatedTime,
@@ -191,12 +192,12 @@ func TestTransformIssueDB(t *testing.T) {
 					Assignee:    structures.User{Name: "assignee"},
 				},
 			},
-			expected: structures.DBIssue{
+			expected: &structures.DBIssue{
 				Key:         "PRJ-123",
 				Summary:     "Test issue",
 				Description: "Test description",
 				Type:        "Task",
-				Priority:    "Project X",
+				Priority:    "Major",
 				Status:      "Done",
 				CreatedTime: parsedCreated,
 				UpdatedTime: parsedUpdated,
@@ -212,7 +213,7 @@ func TestTransformIssueDB(t *testing.T) {
 					Summary: "Minimal issue",
 				},
 			},
-			expected: structures.DBIssue{
+			expected: &structures.DBIssue{
 				Key:     "PRJ-124",
 				Summary: "Minimal issue",
 			},
