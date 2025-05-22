@@ -17,7 +17,7 @@
 ## Структура проекта
 
 ```
-jira-analyzer/
+frontend/
 ├── public/
 │   └── index.html
 │   └── favicon.png
