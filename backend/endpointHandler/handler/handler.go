@@ -83,13 +83,3 @@ func UpdateJiraProject(c *gin.Context, cfg *config.Config) {
 	}
 	c.JSON(http.StatusOK, result)
 }
-
-func CompareTask(c *gin.Context) {
-	// mock example
-	task := c.Param("taskNumber")
-	c.JSON(http.StatusOK, gin.H{"task": task, "result": "comparison placeholder"})
-}
-
-func CompareAllProjects(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"result": "compare all projects placeholder"})
-}
