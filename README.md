@@ -1,6 +1,8 @@
 # Анализатор проектов JIRA
 С полным отчётом можно ознакомиться по [ссылке](https://docs.google.com/document/d/162BJeFayohDZ95NqP_269i3AaB-a9TR3C3PmBbqqCkg/edit?usp=sharing).
 
+Также отчет прикреплен в репозитории: [Отчет КПО](https://github.com/IDevFrye/Jira-Analyzer/blob/main/%D0%9A%D1%83%D1%80%D1%81%D0%BE%D0%B2%D0%BE%D0%B9_%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82_%D0%9A%D0%9F%D0%9E_%D0%A2%D0%97_v3.pdf)
+
 ## Состав команды:
 - Костин Андрей Константинович ([@IDevFrye](https://github.com/IDevFrye)) - гр. 5130904/20101
 - Мамонова Алина Сергеевна ([@hahapathetic](https://github.com/hahapathetic)) - гр. 5130904/20101
