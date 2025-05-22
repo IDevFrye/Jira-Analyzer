@@ -37,7 +37,7 @@ func TimeOpenAnalytics(c *gin.Context) {
 			SELECT DATE_PART('day', NOW() - i.createdTime) AS age
 			FROM Projects p
 			JOIN Issue i ON p.id = i.projectId
-			WHERE i.status NOT IN ('Closed', 'Resolved') AND p.title = $1
+			WHERE i.status NOT IN ('Closed', 'Resolved') AND p.key = $1
 		) sub
 		GROUP BY range
 		ORDER BY MIN(age)
@@ -66,7 +66,7 @@ func StatusDistribution(c *gin.Context) {
 		SELECT i.status, COUNT(*) AS count
 		FROM Projects p
 		JOIN Issue i ON p.id = i.projectId
-		WHERE p.title = $1
+		WHERE p.key = $1
 		GROUP BY i.status
 		ORDER BY i.status
 	`, key)
@@ -97,7 +97,7 @@ func TimeSpentAnalytics(c *gin.Context) {
 		FROM Projects p
 		JOIN Issue i ON p.id = i.projectId
 		JOIN Author a ON a.id = i.authorId
-		WHERE p.title = $1
+		WHERE p.key = $1
 		  AND i.timeSpent IS NOT NULL
 		GROUP BY a.name
 		ORDER BY total_time_spent DESC;
@@ -127,7 +127,7 @@ func PriorityAnalytics(c *gin.Context) {
 		SELECT i.priority, COUNT(*) AS count
 		FROM Projects p
 		JOIN Issue i ON p.id = i.projectId
-		WHERE p.title = $1
+		WHERE p.key = $1
 		GROUP BY i.priority
 		ORDER BY i.priority
 	`, key)

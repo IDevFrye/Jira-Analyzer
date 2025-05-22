@@ -32,3 +32,14 @@ type ProjectStats struct {
 	AvgResolutionTimeH float64 `json:"avg_resolution_time_h"`
 	AvgCreatedPerDay7d float64 `json:"avg_created_per_day_7d"`
 }
+
+type PageInfo struct {
+	PageCount     int `json:"pageCount"`
+	CurrentPage   int `json:"currentPage"`
+	ProjectsCount int `json:"projectsCount"`
+}
+
+type ProjectsResponse struct {
+	Projects []Project `json:"projects"`
+	PageInfo PageInfo  `json:"pageInfo"`
+}

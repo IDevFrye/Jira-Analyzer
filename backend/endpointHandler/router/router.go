@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/endpointhandler/config"
 	"time"
 
 	"github.com/endpointhandler/handler"
@@ -8,10 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter() *gin.Engine {
+func SetupRouter(cfg *config.Config) *gin.Engine {
 	r := gin.Default()
 
-	// ✅ Добавляем CORS
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000", "http://frontend:3000"}, // Разрешённые домены
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -23,14 +23,20 @@ func SetupRouter() *gin.Engine {
 
 	api := r.Group("/api/v1")
 	{
-		api.GET("/projects", handler.GetProjects)
+		api.GET("/projects", func(c *gin.Context) {
+			handler.GetProjects(c, cfg)
+		})
 		api.GET("/projects/:id", handler.GetProjectStats)
 		api.DELETE("/projects/:id", handler.DeleteProject)
 
 		connector := api.Group("/connector")
 		{
-			connector.GET("/projects", handler.GetJiraProjects)
-			connector.POST("/updateProject", handler.UpdateJiraProject)
+			connector.GET("/projects", func(c *gin.Context) {
+				handler.GetJiraProjects(c, cfg)
+			})
+			connector.POST("/updateProject", func(c *gin.Context) {
+				handler.UpdateJiraProject(c, cfg)
+			})
 		}
 
 		analytics := api.Group("/analytics")

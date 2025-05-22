@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"github.com/endpointhandler/config"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -10,13 +11,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetProjects(c *gin.Context) {
-	projects, err := service.GetAllProjects()
+func GetProjects(c *gin.Context, cfg *config.Config) {
+	projectsResp, err := service.FetchAndStoreProjects(cfg)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, projects)
+	c.JSON(http.StatusOK, projectsResp)
 }
 
 func GetProjectStats(c *gin.Context) {
@@ -46,22 +47,18 @@ func DeleteProject(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "deleted"})
 }
 
-func GetJiraProjects(c *gin.Context) {
-	// Получаем query параметры
+func GetJiraProjects(c *gin.Context, cfg *config.Config) {
 	limit := c.DefaultQuery("limit", "20")
 	page := c.DefaultQuery("page", "1")
 	search := c.DefaultQuery("search", "")
 
-	// Формируем URL запроса к коннектору
-	baseURL := "http://jiraconnector:8080/api/v1/connector/projects"
-	reqURL := fmt.Sprintf("%s?limit=%s&page=%s&search=%s",
-		baseURL,
+	reqURL := fmt.Sprintf("%s/projects?limit=%s&page=%s&search=%s",
+		cfg.Connector.BaseURL,
 		url.QueryEscape(limit),
 		url.QueryEscape(page),
 		url.QueryEscape(search),
 	)
 
-	// Выполняем запрос к коннектору
 	resp, err := http.Get(reqURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to contact connector"})
@@ -69,19 +66,17 @@ func GetJiraProjects(c *gin.Context) {
 	}
 	defer resp.Body.Close()
 
-	// Проверка статуса
 	if resp.StatusCode != http.StatusOK {
 		c.JSON(resp.StatusCode, gin.H{"error": "connector returned error"})
 		return
 	}
 
-	// Возвращаем тело ответа клиенту как есть
 	c.DataFromReader(resp.StatusCode, resp.ContentLength, resp.Header.Get("Content-Type"), resp.Body, nil)
 }
 
-func UpdateJiraProject(c *gin.Context) {
+func UpdateJiraProject(c *gin.Context, cfg *config.Config) {
 	key := c.Query("project")
-	result, err := service.UpdateJiraProject(key)
+	result, err := service.UpdateJiraProject(cfg, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -3,28 +3,28 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/endpointhandler/config"
 	"net/http"
 
 	"github.com/endpointhandler/model"
 	"github.com/endpointhandler/repository"
 )
 
-func FetchJiraProjects() ([]model.Project, error) {
-	resp, err := http.Get("http://jiraconnector:8080/api/v1/connector/projects")
+func FetchJiraProjects(cfg *config.Config) (model.ProjectsResponse, error) {
+	url := fmt.Sprintf("%s/projects", cfg.Connector.BaseURL)
+	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return model.ProjectsResponse{}, err
 	}
 	defer resp.Body.Close()
 
-	var result struct {
-		Projects []model.Project `json:"projects"`
-	}
+	var result model.ProjectsResponse
 	err = json.NewDecoder(resp.Body).Decode(&result)
-	return result.Projects, err
+	return result, err
 }
 
-func UpdateJiraProject(project string) (map[string]string, error) {
-	url := fmt.Sprintf("http://jiraconnector:8080/api/v1/connector/updateProject?project=%s", project)
+func UpdateJiraProject(cfg *config.Config, project string) (map[string]string, error) {
+	url := fmt.Sprintf("%s/updateProject?project=%s", cfg.Connector.BaseURL, project)
 	resp, err := http.Post(url, "application/json", nil)
 	if err != nil {
 		return nil, err
@@ -46,4 +46,20 @@ func GetProjectStats(id int) (model.ProjectStats, error) {
 
 func DeleteProject(id int) error {
 	return repository.DeleteProject(id)
+}
+
+func FetchAndStoreProjects(cfg *config.Config) (model.ProjectsResponse, error) {
+	projectsResp, err := FetchJiraProjects(cfg)
+	if err != nil {
+		return model.ProjectsResponse{}, err
+	}
+
+	for _, p := range projectsResp.Projects {
+		_, err := UpdateJiraProject(cfg, p.Key)
+		if err != nil {
+			return model.ProjectsResponse{}, fmt.Errorf("updateProject failed for key=%s: %w", p.Key, err)
+		}
+	}
+
+	return projectsResp, nil
 }

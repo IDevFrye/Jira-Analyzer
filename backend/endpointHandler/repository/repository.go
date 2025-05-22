@@ -2,7 +2,7 @@ package repository
 
 import (
 	"fmt"
-	"log"
+	"github.com/endpointhandler/config"
 	"strconv"
 	"strings"
 	"time"
@@ -14,12 +14,19 @@ import (
 
 var DB *sqlx.DB
 
-func InitDB() {
+func InitDB(cfg *config.Config) error {
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+		cfg.Database.Host, cfg.Database.User, cfg.Database.Password,
+		cfg.Database.DBName, cfg.Database.Port, cfg.Database.SSLMode,
+	)
+
 	var err error
-	DB, err = sqlx.Connect("postgres", "host=postgres user=postgres password=jiradb dbname=testdb port=5432 sslmode=disable")
+	DB, err = sqlx.Connect("postgres", dsn)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }
 
 func GetFilteredProjects(limit, offset int, search string) ([]model.UIProject, int, error) {
@@ -122,8 +129,11 @@ func GetStats(projectID int) (model.ProjectStats, error) {
 	}
 
 	err = DB.Get(&stats.AvgResolutionTimeH, `
-		SELECT COALESCE(AVG(EXTRACT(EPOCH FROM closedTime - createdTime))/3600, 0) 
-		FROM Issue WHERE projectId=$1 AND closedTime IS NOT NULL`, projectID)
+		SELECT COALESCE(AVG(EXTRACT(EPOCH FROM closedTime - createdTime)/3600), 0)
+		FROM Issue
+		WHERE projectId=$1 AND closedTime IS NOT NULL AND closedTime > createdTime
+	`, projectID)
+
 	if err != nil {
 		return stats, err
 	}
@@ -140,5 +150,15 @@ func GetStats(projectID int) (model.ProjectStats, error) {
 
 func DeleteProject(projectID int) error {
 	_, err := DB.Exec("DELETE FROM Projects WHERE id=$1", projectID)
+	return err
+}
+
+func SaveProject(p model.Project) error {
+	_, err := DB.Exec(`
+        INSERT INTO Projects (key, title, url)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (title) DO UPDATE 
+        SET key = EXCLUDED.key, url = EXCLUDED.url
+    `, p.Key, p.Name, p.Self)
 	return err
 }

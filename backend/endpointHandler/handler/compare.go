@@ -66,7 +66,7 @@ func CompareTimeOpen(c *gin.Context) {
 				SELECT DATE_PART('day', NOW() - i.createdTime) AS age
 				FROM Projects p
 				JOIN Issue i ON p.id = i.projectId
-				WHERE i.status NOT IN ('Closed', 'Resolved') AND p.title = $1
+				WHERE i.status NOT IN ('Closed', 'Resolved') AND p.key = $1
 			) sub
 			GROUP BY range
 			ORDER BY MIN(age)
@@ -92,14 +92,14 @@ func CompareStatusDistribution(c *gin.Context) {
 
 	query, args, _ := sqlx.In(`
 		SELECT 
-			p.title AS project,
+			p.key AS project,
 			i.status,
 			COUNT(*) AS count
 		FROM Projects p
 		JOIN Issue i ON p.id = i.projectId
-		WHERE p.title IN (?)
-		GROUP BY p.title, i.status
-		ORDER BY p.title, i.status
+		WHERE p.key IN (?)
+		GROUP BY p.key, i.status
+		ORDER BY p.key, i.status
 	`, keys)
 	query = repository.DB.Rebind(query)
 
@@ -134,15 +134,15 @@ func CompareTimeSpent(c *gin.Context) {
 
 	query, args, _ := sqlx.In(`
 		SELECT 
-			p.title AS project,
+			p.key AS project,
 			a.name AS author,
 			SUM(i.timeSpent) AS total_time_spent
 		FROM Projects p
 		JOIN Issue i ON p.id = i.projectId
 		JOIN Author a ON a.id = i.authorId
-		WHERE p.title IN (?) AND i.timeSpent IS NOT NULL
-		GROUP BY p.title, a.name
-		ORDER BY p.title, total_time_spent DESC
+		WHERE p.key IN (?) AND i.timeSpent IS NOT NULL
+		GROUP BY p.key, a.name
+		ORDER BY p.key, total_time_spent DESC
 	`, keys)
 	query = repository.DB.Rebind(query)
 
@@ -185,14 +185,14 @@ func ComparePriority(c *gin.Context) {
 
 	query, args, _ := sqlx.In(`
 		SELECT 
-			p.title AS project,
+			p.key AS project,
 			i.priority,
 			COUNT(*) AS count
 		FROM Projects p
 		JOIN Issue i ON p.id = i.projectId
-		WHERE p.title IN (?)
-		GROUP BY p.title, i.priority
-		ORDER BY p.title, i.priority
+		WHERE p.key IN (?)
+		GROUP BY p.key, i.priority
+		ORDER BY p.key, i.priority
 	`, keys)
 	query = repository.DB.Rebind(query)
 
