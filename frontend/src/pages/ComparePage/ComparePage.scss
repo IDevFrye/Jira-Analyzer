@@ -1,0 +1,57 @@
+@use 'sass:color';
+@use '../../styles/variables' as v;
+
+.compare-page {
+  padding: v.$spacing-xl;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .page-title {
+    color: v.$primary-color;
+    margin-bottom: v.$spacing-xl;
+    text-align: center;
+  }
+
+  .compare-button {
+    display: block;
+    margin: v.$spacing-xl auto;
+    padding: v.$spacing-md v.$spacing-xl;
+    background-color: v.$primary-color;
+    color: white;
+    border: none;
+    border-radius: v.$rounded-lg;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: v.$shadow-md;
+
+    &:hover {
+      background-color: color.adjust(v.$primary-color, $lightness: -10%);
+      transform: translateY(-2px);
+      box-shadow: v.$shadow-lg;
+    }
+  }
+
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 0;
+    color: v.$text-secondary;
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(v.$primary-color, 0.2);
+      border-radius: 50%;
+      border-top-color: v.$primary-color;
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 1rem;
+    }
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

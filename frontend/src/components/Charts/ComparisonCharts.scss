@@ -1,0 +1,30 @@
+@use '../../styles/variables' as v;
+
+.comparison {
+  &-chart {
+    width: 90%;
+    height: 400px;
+    position: relative;
+  }
+
+  &-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: v.$text-secondary;
+    font-size: 1.1rem;
+  }
+}
+
+.loading {
+  text-align: center;
+  padding: v.$spacing-xl;
+  color: v.$text-secondary;
+}
+
+.comparison-chart-pie {
+  width: 40%;
+    height: 400px;
+    position: relative;
+}
