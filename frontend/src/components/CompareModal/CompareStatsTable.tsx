@@ -32,8 +32,8 @@ const CompareStatsTable: React.FC<CompareStatsTableProps> = ({ projects }) => {
           reopenedIssuesCount: res.data.reopened_issues,
           resolvedIssuesCount: res.data.resolved_issues,
           progressIssuesCount: res.data.in_progress_issues,
-          averageTime: res.data.avg_resolution_time_h,
-          averageIssuesCount: res.data.avg_created_per_day_7d 
+          averageTime: Number(res.data.avg_resolution_time_h.toFixed(2)),
+          averageIssuesCount: Number(res.data.avg_created_per_day_7d.toFixed(2)) 
         }));
         
         setStatsData(formattedData);

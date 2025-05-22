@@ -188,16 +188,46 @@ export const TimeOpenComparisonChart: React.FC<{ projectKeys: string[] }> = ({ p
           throw new Error('Нет данных о времени открытия задач');
         }
 
-        const firstProjectKey = Object.keys(projectData)[0];
-        const ranges = projectData[firstProjectKey]?.map(item => item.range) || [];
-        
+        // Собираем все уникальные диапазоны из всех проектов
+        const allRanges = new Set<string>();
+        projectKeys.forEach(key => {
+          if (projectData[key]) {
+            projectData[key]?.forEach(item => {
+              allRanges.add(item.range);
+            });
+          }
+        });
+
+        const sortedRanges = Array.from(allRanges).sort((a, b) => {
+          // Сортируем диапазоны по логическому порядку
+          // Это примерная реализация, вам может потребоваться более точная сортировка
+          const getRangeValue = (range: string) => {
+            if (range === '30+') return Infinity;
+            const numbers = range.split('-').map(Number);
+            return numbers[0];
+          };
+          return getRangeValue(a) - getRangeValue(b);
+        });
+
         const chartData: ChartData = {
-          labels: ranges,
+          labels: sortedRanges,
           datasets: projectKeys.map((key, i) => {
             const project = projectData[key];
+            const countsMap = new Map<string, number>();
+            
+            // Инициализируем все диапазоны нулями
+            sortedRanges.forEach(range => countsMap.set(range, 0));
+            
+            // Заполняем реальными значениями
+            if (project) {
+              project.forEach(item => {
+                countsMap.set(item.range, item.count);
+              });
+            }
+            
             return {
               label: key,
-              data: project ? project.map(item => item.count) : [],
+              data: sortedRanges.map(range => countsMap.get(range) || 0),
               backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
               borderColor: CHART_COLORS[i % CHART_COLORS.length],
               borderWidth: 1

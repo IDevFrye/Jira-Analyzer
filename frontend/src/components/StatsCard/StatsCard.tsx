@@ -211,7 +211,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ projectId, projectName, projectKe
               if (!window.confirm(`Удалить проект "${projectName}"?`)) return;
               await axios.delete(config.api.endpoints.deleteProject(Number(projectId)));
               alert(`Проект "${projectName}" удалён`);
-              onDelete?.(); // ✅ Вызов пропа
+              onDelete?.();
             } catch (err) {
               console.error('Ошибка при удалении проекта:', err);
               alert('Не удалось удалить проект');
@@ -225,7 +225,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ projectId, projectName, projectKe
       </div>
       
       <Modal isOpen={showAnalytics} onClose={() => setShowAnalytics(false)}>
-        {projectName && <ChartSelector projectKey={projectName} />}
+        {projectKey && <ChartSelector projectKey={projectKey} />}
       </Modal>
     </>
   );

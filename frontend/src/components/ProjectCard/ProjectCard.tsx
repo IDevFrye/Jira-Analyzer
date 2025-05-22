@@ -1,6 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './ProjectCard.scss';
 import { config } from '../../config/config';
+import axios from 'axios';
+
+interface Project {
+  Id: string;
+  Key: string;
+  Name: string;
+  self: string;
+}
 
 interface ProjectCardProps {
   Id: number;
@@ -20,6 +28,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   onAction
 }) => {
   const [loading, setLoading] = useState(false);
+
 
   const handleButtonClick = async () => {
     setLoading(true);

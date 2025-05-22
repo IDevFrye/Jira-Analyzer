@@ -15,50 +15,53 @@ const ProjectsPage: React.FC = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [addedProjects, setAddedProjects] = useState<Set<string>>(new Set());
 
-  // Загрузка проектов
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchProjectsAndAdded = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(config.api.endpoints.connectorProjects, {
+        const connectorRes = await axios.get(config.api.endpoints.connectorProjects, {
           params: { page, limit: 9, search },
         });
-
-        const formattedProjects = res.data?.projects?.map((p: any) => ({
+  
+        const rawProjects = connectorRes.data?.projects || [];
+  
+        const formattedProjects = rawProjects.map((p: any) => ({
           Id: p.id,
           Key: p.key,
           Name: p.name,
-          self: p.self
-        })) || [];
-
-        setProjects(formattedProjects);
-        setPageCount(res.data?.pageInfo?.pageCount || 1);
+          self: p.self,
+        }));
+  
+        const addedRes = await axios.get(config.api.endpoints.projects);
+        const added = addedRes.data;
+  
+        const addedKeys = new Set<string>();
+        const selfMap = new Map<string, string>();
+  
+        added?.forEach((p: { key: string; self: string }) => {
+          addedKeys.add(p.key);
+          selfMap.set(p.key, p.self);
+        });
+  
+        const mergedProjects = formattedProjects.map((p: Project) => ({
+          ...p,
+          self: selfMap.get(p.Key) || p.self
+        }));
+        
+        setProjects(mergedProjects);
+        setAddedProjects(addedKeys);
+        setPageCount(connectorRes.data?.pageInfo?.pageCount || 1);
       } catch (error) {
-        console.error("Error fetching projects:", error);
+        console.error("Error loading projects:", error);
         setProjects([]);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchProjects();
+  
+    fetchProjectsAndAdded();
   }, [page, search]);
-
-  useEffect(() => {
-    const fetchAddedProjects = async () => {
-      try {
-        const res = await axios.get(config.api.endpoints.projects);
-        const addedNames = new Set<string>(
-          res.data.map((p: { name: string, key: string }) => p.key)
-        );
-        console.log(addedNames)
-        setAddedProjects(addedNames);
-      } catch (error) {
-        console.error("Error fetching added projects:", error);
-      }
-    };
-    fetchAddedProjects();
-  }, []);
+  
 
   const handleProjectAction = async (projectName: string, action: 'add' | 'remove') => {
     try {
