@@ -1,4 +1,4 @@
-package handler
+package analytics
 
 import (
 	"github.com/endpointhandler/repository"

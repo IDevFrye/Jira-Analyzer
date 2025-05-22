@@ -1,4 +1,4 @@
-package service_test
+package service
 
 import (
 	"encoding/json"
@@ -8,7 +8,6 @@ import (
 
 	"github.com/endpointhandler/config"
 	"github.com/endpointhandler/model"
-	"github.com/endpointhandler/service"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +18,6 @@ func TestFetchJiraProjects_Success(t *testing.T) {
 		},
 	}
 
-	// Создаем мок-сервер
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/projects", r.URL.Path)
 		json.NewEncoder(w).Encode(expected)
@@ -29,7 +27,7 @@ func TestFetchJiraProjects_Success(t *testing.T) {
 	cfg := &config.Config{}
 	cfg.Connector.BaseURL = server.URL
 
-	resp, err := service.FetchJiraProjects(cfg)
+	resp, err := FetchJiraProjects(cfg)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, resp)
 }
@@ -38,7 +36,7 @@ func TestFetchJiraProjects_Failure(t *testing.T) {
 	cfg := &config.Config{}
 	cfg.Connector.BaseURL = "http://invalid.url" // несуществующий URL
 
-	_, err := service.FetchJiraProjects(cfg)
+	_, err := FetchJiraProjects(cfg)
 	assert.Error(t, err)
 }
 
@@ -55,7 +53,7 @@ func TestUpdateJiraProject_Success(t *testing.T) {
 	cfg := &config.Config{}
 	cfg.Connector.BaseURL = server.URL
 
-	result, err := service.UpdateJiraProject(cfg, "PROJ1")
+	result, err := UpdateJiraProject(cfg, "PROJ1")
 	assert.NoError(t, err)
 	assert.Equal(t, responseMap, result)
 }
@@ -64,7 +62,7 @@ func TestUpdateJiraProject_Failure(t *testing.T) {
 	cfg := &config.Config{}
 	cfg.Connector.BaseURL = "http://invalid.url"
 
-	_, err := service.UpdateJiraProject(cfg, "PROJ1")
+	_, err := UpdateJiraProject(cfg, "PROJ1")
 	assert.Error(t, err)
 }
 
@@ -100,7 +98,7 @@ func TestFetchAndStoreProjects(t *testing.T) {
 
 	cfg.Connector.BaseURL = combinedServer.URL
 
-	resp, err := service.FetchAndStoreProjects(cfg)
+	resp, err := FetchAndStoreProjects(cfg)
 	assert.NoError(t, err)
 	assert.Equal(t, projectsResp, resp)
 }

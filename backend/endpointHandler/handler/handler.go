@@ -12,7 +12,7 @@ import (
 )
 
 func GetProjects(c *gin.Context, cfg *config.Config) {
-	projectsResp, err := service.FetchAndStoreProjects(cfg)
+	projectsResp, err := service.GetAllProjects()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

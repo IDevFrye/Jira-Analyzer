@@ -1,4 +1,4 @@
-package handler_test
+package compare
 
 import (
 	"encoding/json"
@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/endpointhandler/handler"
 	"github.com/endpointhandler/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
@@ -79,7 +78,7 @@ func TestCompareTimeOpen_Success(t *testing.T) {
 		WithArgs("TESTKEY").
 		WillReturnRows(rows)
 
-	r := setupRouterWithHandler("/api/v1/compare/time-open", handler.CompareTimeOpen)
+	r := setupRouterWithHandler("/api/v1/compare/time-open", CompareTimeOpen)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/compare/time-open?key=TESTKEY", nil)
 	w := httptest.NewRecorder()
@@ -102,7 +101,7 @@ func TestCompareTimeOpen_Success(t *testing.T) {
 }
 
 func TestCompareTimeOpen_MissingKey(t *testing.T) {
-	r := setupRouterWithHandler("/api/v1/compare/time-open", handler.CompareTimeOpen)
+	r := setupRouterWithHandler("/api/v1/compare/time-open", CompareTimeOpen)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/compare/time-open", nil)
 	w := httptest.NewRecorder()
@@ -144,7 +143,7 @@ func TestCompareStatusDistribution(t *testing.T) {
 		WithArgs(toDriverValues(args)...).
 		WillReturnRows(rows)
 
-	r := setupRouterWithHandler("/api/v1/compare/status-distribution", handler.CompareStatusDistribution)
+	r := setupRouterWithHandler("/api/v1/compare/status-distribution", CompareStatusDistribution)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/compare/status-distribution?key=PROJ1,PROJ2", nil)
 	w := httptest.NewRecorder()
@@ -186,7 +185,7 @@ func TestCompareStatusDistribution_DBError(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(rebQuery)).
 		WillReturnError(errors.New("db failure"))
 
-	r := setupRouterWithHandler("/api/v1/compare/status-distribution", handler.CompareStatusDistribution)
+	r := setupRouterWithHandler("/api/v1/compare/status-distribution", CompareStatusDistribution)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/compare/status-distribution?key=PROJ1", nil)
 	w := httptest.NewRecorder()
@@ -231,7 +230,7 @@ func TestCompareTimeSpent(t *testing.T) {
 		WithArgs(toDriverValues(args)...).
 		WillReturnRows(rows)
 
-	r := setupRouterWithHandler("/api/v1/compare/time-spent", handler.CompareTimeSpent)
+	r := setupRouterWithHandler("/api/v1/compare/time-spent", CompareTimeSpent)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/compare/time-spent?key=PROJ1,PROJ2", nil)
 	w := httptest.NewRecorder()
@@ -287,7 +286,7 @@ func TestComparePriority(t *testing.T) {
 		WithArgs(toDriverValues(args)...).
 		WillReturnRows(rows)
 
-	r := setupRouterWithHandler("/api/v1/compare/priority", handler.ComparePriority)
+	r := setupRouterWithHandler("/api/v1/compare/priority", ComparePriority)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/compare/priority?key=PROJ1,PROJ2", nil)
 	w := httptest.NewRecorder()

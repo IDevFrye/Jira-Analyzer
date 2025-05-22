@@ -1,10 +1,12 @@
 package router
 
 import (
+	analyticsHandler "github.com/endpointhandler/analytics"
+	compareHandler "github.com/endpointhandler/compare"
 	"github.com/endpointhandler/config"
+	"github.com/endpointhandler/handler"
 	"time"
 
-	"github.com/endpointhandler/handler"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -41,18 +43,18 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 
 		analytics := api.Group("/analytics")
 		{
-			analytics.GET("/time-open", handler.TimeOpenAnalytics)            // param = projectKey. если ишью открыта в диапазоне дней то количество ишью на одном проекте/ range count
-			analytics.GET("/status-distribution", handler.StatusDistribution) // ля каждого статуса количество/ status count
-			analytics.GET("/time-spent", handler.TimeSpentAnalytics)          //время затраченное на проект для каждого автора
-			analytics.GET("/priority", handler.PriorityAnalytics)
+			analytics.GET("/time-open", analyticsHandler.TimeOpenAnalytics)
+			analytics.GET("/status-distribution", analyticsHandler.StatusDistribution)
+			analytics.GET("/time-spent", analyticsHandler.TimeSpentAnalytics)
+			analytics.GET("/priority", analyticsHandler.PriorityAnalytics)
 		}
 
 		compare := api.Group("/compare")
 		{
-			compare.GET("/time-open", handler.CompareTimeOpen) //key
-			compare.GET("/status-distribution", handler.CompareStatusDistribution)
-			compare.GET("/time-spent", handler.CompareTimeSpent)
-			compare.GET("/priority", handler.ComparePriority)
+			compare.GET("/time-open", compareHandler.CompareTimeOpen)
+			compare.GET("/status-distribution", compareHandler.CompareStatusDistribution)
+			compare.GET("/time-spent", compareHandler.CompareTimeSpent)
+			compare.GET("/priority", compareHandler.ComparePriority)
 		}
 	}
 

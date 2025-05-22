@@ -80,7 +80,6 @@ func GetAllProjects() ([]model.Project, error) {
 		return nil, err
 	}
 
-	// Преобразование в []Project
 	var result []model.Project
 	for _, p := range dbProjects {
 		result = append(result, model.Project{

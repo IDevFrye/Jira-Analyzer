@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	// Объявляем флаг для пути к конфигу с дефолтным значением
+
 	configPath := flag.String("config", "config.yaml", "Path to config file")
 	flag.Parse()
 

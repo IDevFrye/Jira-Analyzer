@@ -1,4 +1,4 @@
-package handler
+package compare
 
 import (
 	"fmt"
@@ -113,7 +113,6 @@ func CompareStatusDistribution(c *gin.Context) {
 		return
 	}
 
-	// Группируем статусы по проекту
 	response := make(map[string]map[string]int)
 	for _, r := range rows {
 		if _, exists := response[r.Project]; !exists {
@@ -156,7 +155,6 @@ func CompareTimeSpent(c *gin.Context) {
 		return
 	}
 
-	// Группируем по проекту, внутри список авторов с их временем
 	type authorStat struct {
 		Author         string `json:"author"`
 		TotalTimeSpent int    `json:"total_time_spent"`
@@ -206,7 +204,6 @@ func ComparePriority(c *gin.Context) {
 		return
 	}
 
-	// Группируем по проекту, внутри - приоритеты и их количество
 	response := make(map[string]map[string]int)
 	for _, r := range rows {
 		if _, exists := response[r.Project]; !exists {
