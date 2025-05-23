@@ -64,16 +64,16 @@ module.exports = {
     new Dotenv(),
     new webpack.DefinePlugin({
       //Для продакшена
-      // 'process.env.REACT_APP_API_BASE_URL': JSON.stringify(process.env.REACT_APP_API_BASE_URL || '/api')
+      'process.env.REACT_APP_API_BASE_URL': JSON.stringify(process.env.REACT_APP_API_BASE_URL || '/api')
 
-      'process.env.REACT_APP_API_BASE_URL': JSON.stringify(process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000')
+      //'process.env.REACT_APP_API_BASE_URL': JSON.stringify(process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000')
     })
   ],
   devServer: {
-    port: 3000,
+    //port: 3000,
 
     //Для продакшена
-    //port: 80,
+    port: 80,
     hot: true,
     open: true,
     historyApiFallback: true,

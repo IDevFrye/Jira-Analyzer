@@ -7,12 +7,12 @@ declare global {
   }
 }
 
-const DEFAULT_API_BASE_URL = 'http://localhost:8000/api';
-const API_BASE_URL =  DEFAULT_API_BASE_URL;
+//const DEFAULT_API_BASE_URL = 'http://localhost:8000/api';
+//const API_BASE_URL =  DEFAULT_API_BASE_URL;
 
 //Для продакшена
-// const DEFAULT_API_BASE_URL = '';
-// const API_BASE_URL = DEFAULT_API_BASE_URL;
+const DEFAULT_API_BASE_URL = '/api';
+const API_BASE_URL = DEFAULT_API_BASE_URL;
 
 export const config = {
   api: {
