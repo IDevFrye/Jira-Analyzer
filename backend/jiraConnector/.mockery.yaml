@@ -1,0 +1,10 @@
+packages:
+  github.com/jiraconnector/internal/apiJiraConnector/jiraService:
+    interfaces:
+      JiraConnectorInterface:
+      DataTransformerInterface:
+      DbPusherInterface:
+
+  github.com/jiraconnector/internal/apiJiraConnector/jiraHandlers:
+    interfaces:
+      JiraServiceInterface:

@@ -1,0 +1,66 @@
+version: '3'
+
+vars:
+  COMPOSE_FILE: deployment/docker-compose.yaml
+
+tasks:
+  build:
+    desc: Сборка Docker образов
+    cmds:
+      - docker compose up -d --build
+
+  unit-test:
+    desc: Юнит-тесты Go
+    cmds:
+      - echo "Запуск юнит-тестов эндпоинтов"
+      - docker exec -it deployment-backend-test-1  go test ./...
+
+      - echo "Запуск юнит-тестов коннектора"
+      - docker compose run --rm jiraconnector go test ./...
+
+  integration-test:
+    desc: Интеграционные тесты
+    cmds:
+      - echo "Запуск интеграционных тестов для коннектора"
+      - docker compose run --rm jiraconnector go test ./tests/integration/... -tags=integration
+
+      - echo "Запуск интеграционных тестов для всей системы"
+      - docker compose run --rm backend-test
+
+  up:
+    desc: Запуск приложения
+    cmds:
+      - docker compose up -d
+
+  all:
+    desc: Полный пайплайн [ build -> unit-test -> integration-test -> up ]
+    cmds:
+      - task: build
+      - task: unit-test
+      - task: integration-test
+      - task: up
+
+  down:
+    desc: Остановить контейнеры
+    cmds:
+      - docker compose down
+
+  clean:
+    desc: Полная очистка контейнеров и мусора
+    cmds:
+      - docker compose down -v --remove-orphans
+
+  logs:
+    desc: Логи всех сервисов (кроме коннектора :D)
+    cmds:
+      - docker compose logs -f
+  
+  logs-connector:
+    desc: Логи jira-connector
+    cmds:
+      - docker exec -it deployment-jiraconnector-1 cat log/jiraconnector.log
+  
+  db:
+    desc: Консоль базы данных
+    cmds:
+      - docker exec -it deployment-postgres-1 psql -U postgres -d testdb
