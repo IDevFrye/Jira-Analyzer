@@ -195,7 +195,9 @@ func TestGetProjectIssues(t *testing.T) {
 	issues, err := conn.GetProjectIssues("TEST")
 	assert.NoError(t, err)
 	assert.Len(t, issues, 2)
-	assert.Equal(t, "ISSUE-1", issues[0].Key)
+	keys := []string{issues[0].Key, issues[1].Key}
+	assert.Contains(t, keys, "ISSUE-1")
+	assert.Contains(t, keys, "ISSUE-2")
 }
 
 func TestGetAllProjects_ErrorCases(t *testing.T) {
