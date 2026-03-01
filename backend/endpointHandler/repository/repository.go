@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"github.com/endpointhandler/config"
 	"strconv"
@@ -30,6 +31,10 @@ func InitDB(cfg *config.Config) error {
 }
 
 func GetFilteredProjects(limit, offset int, search string) ([]model.UIProject, int, error) {
+	if DB == nil {
+		return nil, 0, errors.New("database not initialized")
+	}
+
 	var projects []model.UIProject
 	var total int
 
@@ -74,6 +79,10 @@ func GetFilteredProjects(limit, offset int, search string) ([]model.UIProject, i
 }
 
 func GetAllProjects() ([]model.Project, error) {
+	if DB == nil {
+		return nil, errors.New("database not initialized")
+	}
+
 	var dbProjects []model.DBProject
 	err := DB.Select(&dbProjects, "SELECT * FROM Projects")
 	if err != nil {
@@ -94,6 +103,10 @@ func GetAllProjects() ([]model.Project, error) {
 
 func GetStats(projectID int) (model.ProjectStats, error) {
 	var stats model.ProjectStats
+
+	if DB == nil {
+		return stats, errors.New("database not initialized")
+	}
 
 	err := DB.Get(&stats.TotalIssues, "SELECT COUNT(*) FROM Issue WHERE projectId=$1", projectID)
 	if err != nil {
@@ -148,11 +161,17 @@ func GetStats(projectID int) (model.ProjectStats, error) {
 }
 
 func DeleteProject(projectID int) error {
+	if DB == nil {
+		return errors.New("database not initialized")
+	}
 	_, err := DB.Exec("DELETE FROM Projects WHERE id=$1", projectID)
 	return err
 }
 
 func SaveProject(p model.Project) error {
+	if DB == nil {
+		return errors.New("database not initialized")
+	}
 	_, err := DB.Exec(`
         INSERT INTO Projects (key, title, url)
         VALUES ($1, $2, $3)

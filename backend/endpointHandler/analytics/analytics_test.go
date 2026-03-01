@@ -146,3 +146,67 @@ func TestPriorityAnalytics_DBError(t *testing.T) {
 		t.Errorf("expected status 500, got %d", w.Code)
 	}
 }
+
+func TestTimeOpenAnalytics_MissingKey(t *testing.T) {
+	w := performRequest(http.MethodGet, "/analytics/time-open", TimeOpenAnalytics)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected status 400, got %d", w.Code)
+	}
+}
+
+func TestStatusDistribution_MissingKey(t *testing.T) {
+	w := performRequest(http.MethodGet, "/analytics/status-distribution", StatusDistribution)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected status 400, got %d", w.Code)
+	}
+}
+
+func TestTimeSpentAnalytics_MissingKey(t *testing.T) {
+	w := performRequest(http.MethodGet, "/analytics/time-spent", TimeSpentAnalytics)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected status 400, got %d", w.Code)
+	}
+}
+
+func TestPriorityAnalytics_MissingKey(t *testing.T) {
+	w := performRequest(http.MethodGet, "/analytics/priority", PriorityAnalytics)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected status 400, got %d", w.Code)
+	}
+}
+
+func TestThroughputAnalytics(t *testing.T) {
+	mock := setupMockDB(t)
+
+	mock.ExpectQuery("SELECT .*FROM Projects p").
+		WithArgs("test-project").
+		WillReturnRows(sqlmock.NewRows([]string{"created_date", "count"}).
+			AddRow("2025-01-01", 5).
+			AddRow("2025-01-02", 3),
+		)
+
+	w := performRequest(http.MethodGet, "/analytics/throughput?key=test-project", ThroughputAnalytics)
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", w.Code)
+	}
+}
+
+func TestThroughputAnalytics_DBError(t *testing.T) {
+	mock := setupMockDB(t)
+
+	mock.ExpectQuery("SELECT .*FROM Projects p").
+		WithArgs("test-project").
+		WillReturnError(fmt.Errorf("db error"))
+
+	w := performRequest(http.MethodGet, "/analytics/throughput?key=test-project", ThroughputAnalytics)
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("expected status 500, got %d", w.Code)
+	}
+}
+
+func TestThroughputAnalytics_MissingKey(t *testing.T) {
+	w := performRequest(http.MethodGet, "/analytics/throughput", ThroughputAnalytics)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected status 400, got %d", w.Code)
+	}
+}

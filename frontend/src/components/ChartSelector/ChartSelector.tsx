@@ -3,6 +3,7 @@ import TimeOpenChart from '../Charts/TimeOpenChart';
 import StatusDistributionChart from '../Charts/StatusDistributionChart';
 import TimeSpentChart from '../Charts/TimeSpentChart';
 import PriorityChart from '../Charts/PriorityChart';
+import ThroughputChart from '../Charts/ThroughputChart';
 import './ChartSelector.scss';
 
 interface ChartSelectorProps {
@@ -13,7 +14,8 @@ export type ChartType =
   | 'timeOpen' 
   | 'statusDistribution' 
   | 'timeSpent' 
-  | 'priority';
+  | 'priority'
+  | 'throughput';
 
 export interface ChartData {
   labels: string[];
@@ -35,6 +37,7 @@ const ChartSelector: React.FC<ChartSelectorProps> = ({ projectKey }) => {
     { id: 'statusDistribution', name: 'Распределение по статусам' },
     { id: 'timeSpent', name: 'Затраченное время' },
     { id: 'priority', name: 'По приоритетам' },
+    { id: 'throughput', name: 'Пропускная способность' },
   ];
 
   const renderChart = () => {
@@ -47,6 +50,8 @@ const ChartSelector: React.FC<ChartSelectorProps> = ({ projectKey }) => {
         return <TimeSpentChart projectKey={projectKey} />;
       case 'priority':
         return <PriorityChart projectKey={projectKey} />;
+      case 'throughput':
+        return <ThroughputChart projectKey={projectKey} />;
       default:
         return <TimeOpenChart projectKey={projectKey} />;
     }

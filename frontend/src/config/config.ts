@@ -32,6 +32,7 @@ export const config = {
       statusDistribution: `${API_BASE_URL}/v1/analytics/status-distribution`,
       timeSpentAnalytics: `${API_BASE_URL}/v1/analytics/time-spent`,
       priorityAnalytics: `${API_BASE_URL}/v1/analytics/priority`,
+      throughputAnalytics: `${API_BASE_URL}/v1/analytics/throughput`,
       
       // Comparison analytics
       compareTimeOpen: `${API_BASE_URL}/v1/compare/time-open`,

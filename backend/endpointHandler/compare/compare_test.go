@@ -305,3 +305,39 @@ func TestComparePriority(t *testing.T) {
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
+
+func TestCompareStatusDistribution_MissingKey(t *testing.T) {
+	r := setupRouterWithHandler("/api/v1/compare/status-distribution", CompareStatusDistribution)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/compare/status-distribution", nil)
+	w := httptest.NewRecorder()
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Contains(t, w.Body.String(), "missing ?key")
+}
+
+func TestCompareTimeSpent_MissingKey(t *testing.T) {
+	r := setupRouterWithHandler("/api/v1/compare/time-spent", CompareTimeSpent)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/compare/time-spent", nil)
+	w := httptest.NewRecorder()
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Contains(t, w.Body.String(), "missing ?key")
+}
+
+func TestComparePriority_MissingKey(t *testing.T) {
+	r := setupRouterWithHandler("/api/v1/compare/priority", ComparePriority)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/compare/priority", nil)
+	w := httptest.NewRecorder()
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Contains(t, w.Body.String(), "missing ?key")
+}

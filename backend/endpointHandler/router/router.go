@@ -47,6 +47,7 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 			analytics.GET("/status-distribution", analyticsHandler.StatusDistribution)
 			analytics.GET("/time-spent", analyticsHandler.TimeSpentAnalytics)
 			analytics.GET("/priority", analyticsHandler.PriorityAnalytics)
+			analytics.GET("/throughput", analyticsHandler.ThroughputAnalytics)
 		}
 
 		compare := api.Group("/compare")

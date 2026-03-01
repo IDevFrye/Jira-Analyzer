@@ -13,6 +13,11 @@ func TimeOpenAnalytics(c *gin.Context) {
 		return
 	}
 
+	if repository.DB == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "database not initialized"})
+		return
+	}
+
 	var result []struct {
 		Range string `json:"range"`
 		Count int    `json:"count"`
@@ -57,6 +62,11 @@ func StatusDistribution(c *gin.Context) {
 		return
 	}
 
+	if repository.DB == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "database not initialized"})
+		return
+	}
+
 	var result []struct {
 		Status string `json:"status"`
 		Count  int    `json:"count"`
@@ -82,6 +92,11 @@ func TimeSpentAnalytics(c *gin.Context) {
 	projectKey := c.Query("key")
 	if projectKey == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "missing project key"})
+		return
+	}
+
+	if repository.DB == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "database not initialized"})
 		return
 	}
 
@@ -118,6 +133,11 @@ func PriorityAnalytics(c *gin.Context) {
 		return
 	}
 
+	if repository.DB == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "database not initialized"})
+		return
+	}
+
 	var result []struct {
 		Priority string `json:"priority"`
 		Count    int    `json:"count"`
@@ -136,5 +156,43 @@ func PriorityAnalytics(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	c.JSON(http.StatusOK, result)
+}
+
+// ThroughputAnalytics возвращает количество созданных задач по дням за последние 30 дней
+func ThroughputAnalytics(c *gin.Context) {
+	key := c.Query("key")
+	if key == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "project key is required"})
+		return
+	}
+
+	if repository.DB == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "database not initialized"})
+		return
+	}
+
+	var result []struct {
+		Date  string `db:"created_date" json:"date"`
+		Count int    `db:"count" json:"count"`
+	}
+
+	err := repository.DB.Select(&result, `
+		SELECT 
+			TO_CHAR(DATE_TRUNC('day', i.createdTime), 'YYYY-MM-DD') AS created_date,
+			COUNT(*) AS count
+		FROM Projects p
+		JOIN Issue i ON p.id = i.projectId
+		WHERE p.key = $1
+		  AND i.createdTime > NOW() - INTERVAL '30 days'
+		GROUP BY created_date
+		ORDER BY created_date
+	`, key)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, result)
 }

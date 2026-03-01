@@ -102,3 +102,42 @@ func TestFetchAndStoreProjects(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, projectsResp, resp)
 }
+
+func TestFetchJiraProjects_InvalidJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("invalid json"))
+	}))
+	defer server.Close()
+
+	cfg := &config.Config{}
+	cfg.Connector.BaseURL = server.URL
+
+	_, err := FetchJiraProjects(cfg)
+	assert.Error(t, err)
+}
+
+func TestFetchAndStoreProjects_UpdateError(t *testing.T) {
+	projectsResp := model.ProjectsResponse{
+		Projects: []model.Project{
+			{ID: "1", Key: "PROJ1", Name: "Project One", Self: "url1"},
+		},
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/projects":
+			json.NewEncoder(w).Encode(projectsResp)
+		case "/updateProject":
+			w.Write([]byte("invalid json"))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	cfg := &config.Config{}
+	cfg.Connector.BaseURL = server.URL
+
+	_, err := FetchAndStoreProjects(cfg)
+	assert.Error(t, err)
+}
