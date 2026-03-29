@@ -70,10 +70,10 @@ module.exports = {
     })
   ],
   devServer: {
-    //port: 3000,
+    port: 3000,
 
     //Для продакшена
-    port: 80,
+    //port: 80,
     hot: true,
     open: true,
     historyApiFallback: true,
