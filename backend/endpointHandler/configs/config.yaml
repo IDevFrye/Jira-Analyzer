@@ -1,0 +1,13 @@
+server:
+  port: "8000"
+
+database:
+  host: "postgres"
+  user: "testuser"
+  password: "testpass"
+  dbname: "testdb"
+  port: "5432"
+  sslmode: "disable"
+
+connector:
+  baseURL: "http://jiraconnector:8080/api/v1/connector"

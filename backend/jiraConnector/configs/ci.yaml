@@ -1,0 +1,20 @@
+database:
+  host: "localhost"
+  port: "5432"
+  name: "testdb"
+  user: "testuser"
+  password: "testpass"
+
+jira-connector:
+  url: "https://issues.apache.org/jira"
+  thread_count: 10
+  issue_in_one_request: 100
+  max_sleep: 8000
+  min_sleep: 50
+
+server:
+  port: ":8080"
+
+log_file: "jiraconnector.ci.log"
+env: "ci"
+
