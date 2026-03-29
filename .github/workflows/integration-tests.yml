@@ -36,30 +36,76 @@ jobs:
         run: go test ./tests/integration/jiraApi/... -tags=integration -v
 
   full-system-integration:
-    name: Full system integration (docker compose)
+    name: Full system integration (no docker compose)
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U testuser -d testdb"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build and start services
-        working-directory: deployment
-        run: docker compose up -d --build
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.2"
 
-      - name: Run connector integration tests
-        working-directory: deployment
-        run: docker compose run --rm jiraconnector go test ./tests/integration/... -tags=integration -v
+      - name: Init DB schema
+        working-directory: backend/endpointHandler
+        run: go run ./cmd/initdb --config=configs/ci.yaml --sql=../../deployment/initdb/init.sql
 
-      - name: Run backend integration tests
-        working-directory: deployment
-        run: docker compose run --rm backend-test
+      - name: Start jiraConnector
+        working-directory: backend/jiraConnector
+        env:
+          CONFIG_PATH: configs/ci.yaml
+        run: |
+          nohup go run ./cmd/service > jiraconnector.out.log 2>&1 &
+          echo $! > jiraconnector.pid
 
-      - name: Dump compose logs on failure
+      - name: Start endpointHandler
+        working-directory: backend/endpointHandler
+        run: |
+          nohup go run ./cmd/service --config=./configs/ci.yaml > backend.out.log 2>&1 &
+          echo $! > backend.pid
+
+      - name: Wait for services
+        run: |
+          for i in {1..60}; do
+            (curl -fsS http://localhost:8080/api/v1/connector/projects?page=1\&limit=1\&search= >/dev/null) && break
+            sleep 1
+          done
+          for i in {1..60}; do
+            (curl -fsS http://localhost:8000/api/v1/projects >/dev/null) && break
+            sleep 1
+          done
+
+      - name: Run backend integration tests (against localhost)
+        env:
+          BACKEND_BASE_URL: http://localhost:8000/api/v1
+        working-directory: backend/endpointHandler
+        run: go test ./tests/integration/... -tags=integration -v
+
+      - name: Dump service logs on failure
         if: failure()
-        working-directory: deployment
-        run: docker compose logs --no-color
+        run: |
+          echo "=== jiraconnector.out.log ==="
+          sed -n '1,200p' backend/jiraConnector/jiraconnector.out.log || true
+          echo "=== backend.out.log ==="
+          sed -n '1,200p' backend/endpointHandler/backend.out.log || true
 
       - name: Stop services
         if: always()
-        working-directory: deployment
-        run: docker compose down -v --remove-orphans
+        run: |
+          (test -f backend/jiraConnector/jiraconnector.pid && kill $(cat backend/jiraConnector/jiraconnector.pid)) || true
+          (test -f backend/endpointHandler/backend.pid && kill $(cat backend/endpointHandler/backend.pid)) || true
