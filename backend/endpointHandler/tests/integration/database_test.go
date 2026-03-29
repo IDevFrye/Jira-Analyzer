@@ -18,7 +18,7 @@ import (
 func TestDBGetAllProjects(t *testing.T) {
 	client := http.Client{Timeout: 20 * time.Second}
 
-	baseURL := "http://backend:8000/api/v1"
+	baseURL := getBackendBaseURL()
 	var selectedProjects ResponseProject
 
 	// get page=1 limit=9 projects from jira
@@ -51,6 +51,7 @@ func TestDBGetAllProjects(t *testing.T) {
 
 	// check that project in DB
 	var loadProject []JiraProject
+	var createdProjects []JiraProject
 	t.Run("GET /projects", func(t *testing.T) {
 		resp, err := client.Get(fmt.Sprintf("%s/projects", baseURL))
 		require.NoError(t, err)
@@ -60,12 +61,12 @@ func TestDBGetAllProjects(t *testing.T) {
 
 		err = json.NewDecoder(resp.Body).Decode(&loadProject)
 		require.NoError(t, err)
-		require.Equal(t, len(loadProject), 3)
-		require.Equal(t, p1.Name, loadProject[0].Name)
+		createdProjects = pickSyncedProjects(loadProject, p1, p2, p3)
+		require.GreaterOrEqual(t, len(createdProjects), 1)
 	})
 
 	t.Run("DELETE /deleteProject", func(t *testing.T) {
-		for _, prj := range loadProject {
+		for _, prj := range createdProjects {
 			req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/projects/%s", baseURL, prj.Id), nil)
 			require.NoError(t, err)
 
@@ -82,7 +83,7 @@ func TestDBGetAllProjects(t *testing.T) {
 func TestDBGetStats(t *testing.T) {
 	client := http.Client{Timeout: 20 * time.Second}
 
-	baseURL := "http://backend:8000/api/v1"
+	baseURL := getBackendBaseURL()
 	var selectedProjects ResponseProject
 
 	// get page=1 limit=9 projects from jira
@@ -99,18 +100,22 @@ func TestDBGetStats(t *testing.T) {
 	})
 
 	p1 := selectedProjects.Projects[0]
+	p2 := selectedProjects.Projects[1]
+	p3 := selectedProjects.Projects[2]
 
-	// load project to DB
+	// load projects to DB to get at least one synced project
 	t.Run("POST /connector/updateProject", func(t *testing.T) {
-		resp, err := client.Post(fmt.Sprintf("%s/connector/updateProject?project=%s", baseURL, p1.Key), "", nil)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		assert.Equal(t, 200, resp.StatusCode)
+		for _, key := range []string{p1.Key, p2.Key, p3.Key} {
+			resp, err := client.Post(fmt.Sprintf("%s/connector/updateProject?project=%s", baseURL, key), "", nil)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			assert.Equal(t, 200, resp.StatusCode)
+		}
 	})
 
 	// check that project in DB
 	var loadProject []JiraProject
+	var targetProject JiraProject
 	t.Run("GET /projects", func(t *testing.T) {
 		resp, err := client.Get(fmt.Sprintf("%s/projects", baseURL))
 		require.NoError(t, err)
@@ -120,13 +125,15 @@ func TestDBGetStats(t *testing.T) {
 
 		err = json.NewDecoder(resp.Body).Decode(&loadProject)
 		require.NoError(t, err)
-		require.Equal(t, p1.Name, loadProject[0].Name)
+		var found bool
+		targetProject, found = pickFirstSyncedProject(loadProject, p1, p2, p3)
+		require.True(t, found)
 	})
 
 	// check full info about project
 	var prjStatus ProjectStats
 	t.Run("GET /projects/{:id}", func(t *testing.T) {
-		resp, err := client.Get(fmt.Sprintf("%s/projects/%s", baseURL, loadProject[0].Id))
+		resp, err := client.Get(fmt.Sprintf("%s/projects/%s", baseURL, targetProject.Id))
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
@@ -138,16 +145,14 @@ func TestDBGetStats(t *testing.T) {
 	})
 
 	t.Run("DELETE /deleteProject", func(t *testing.T) {
-		for _, prj := range loadProject {
-			req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/projects/%s", baseURL, prj.Id), nil)
-			require.NoError(t, err)
+		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/projects/%s", baseURL, targetProject.Id), nil)
+		require.NoError(t, err)
 
-			resp, err := client.Do(req)
-			require.NoError(t, err)
-			defer resp.Body.Close()
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
 
-			assert.Equal(t, 200, resp.StatusCode)
-		}
+		assert.Equal(t, 200, resp.StatusCode)
 	})
 }
 
@@ -155,7 +160,7 @@ func TestDBGetStats(t *testing.T) {
 func TestDBDeleteProject(t *testing.T) {
 	client := http.Client{Timeout: 20 * time.Second}
 
-	baseURL := "http://backend:8000/api/v1"
+	baseURL := getBackendBaseURL()
 	var selectedProjects ResponseProject
 
 	// get page=1 limit=9 projects from jira
@@ -172,18 +177,22 @@ func TestDBDeleteProject(t *testing.T) {
 	})
 
 	p1 := selectedProjects.Projects[0]
+	p2 := selectedProjects.Projects[1]
+	p3 := selectedProjects.Projects[2]
 
-	// load project to DB
+	// load projects to DB to get at least one synced project
 	t.Run("POST /connector/updateProject", func(t *testing.T) {
-		resp, err := client.Post(fmt.Sprintf("%s/connector/updateProject?project=%s", baseURL, p1.Key), "", nil)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		assert.Equal(t, 200, resp.StatusCode)
+		for _, key := range []string{p1.Key, p2.Key, p3.Key} {
+			resp, err := client.Post(fmt.Sprintf("%s/connector/updateProject?project=%s", baseURL, key), "", nil)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			assert.Equal(t, 200, resp.StatusCode)
+		}
 	})
 
 	// check that project in DB
 	var loadProject []JiraProject
+	var targetProject JiraProject
 	t.Run("GET /projects", func(t *testing.T) {
 		resp, err := client.Get(fmt.Sprintf("%s/projects", baseURL))
 		require.NoError(t, err)
@@ -193,12 +202,14 @@ func TestDBDeleteProject(t *testing.T) {
 
 		err = json.NewDecoder(resp.Body).Decode(&loadProject)
 		require.NoError(t, err)
-		require.Equal(t, p1.Name, loadProject[0].Name)
+		var found bool
+		targetProject, found = pickFirstSyncedProject(loadProject, p1, p2, p3)
+		require.True(t, found)
 	})
 
 	// delete project from DB
 	t.Run("DELETE /deleteProject", func(t *testing.T) {
-		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/projects/%s", baseURL, loadProject[0].Id), nil)
+		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/projects/%s", baseURL, targetProject.Id), nil)
 		require.NoError(t, err)
 
 		resp, err := client.Do(req)

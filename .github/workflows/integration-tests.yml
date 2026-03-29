@@ -1,0 +1,65 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "deployment/**"
+      - "Makefile"
+      - ".github/workflows/integration-tests.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - "deployment/**"
+      - "Makefile"
+      - ".github/workflows/integration-tests.yml"
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  connector-api-integration:
+    name: Connector API integration (mock Jira)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.2"
+
+      - name: Run connector integration tests with mocks
+        working-directory: backend/jiraConnector
+        run: go test ./tests/integration/jiraApi/... -tags=integration -v
+
+  full-system-integration:
+    name: Full system integration (docker compose)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and start services
+        working-directory: deployment
+        run: docker compose up -d --build
+
+      - name: Run connector integration tests
+        working-directory: deployment
+        run: docker compose run --rm jiraconnector go test ./tests/integration/... -tags=integration -v
+
+      - name: Run backend integration tests
+        working-directory: deployment
+        run: docker compose run --rm backend-test
+
+      - name: Dump compose logs on failure
+        if: failure()
+        working-directory: deployment
+        run: docker compose logs --no-color
+
+      - name: Stop services
+        if: always()
+        working-directory: deployment
+        run: docker compose down -v --remove-orphans

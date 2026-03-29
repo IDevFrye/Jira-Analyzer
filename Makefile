@@ -1,19 +1,23 @@
-.PHONY: build build-backend build-frontend unit-test unit-test-backend unit-test-frontend
+.PHONY: help integration-test integration-test-local integration-test-local-connector integration-test-local-backend integration-test-docker local-db-init local-up local-down
 
-build: build-backend build-frontend
+help:
+	@echo "Targets:"
+	@echo "  make local-db-init                 Apply DB schema to local PostgreSQL"
+	@echo "  make local-up                      Start jiraConnector + backend + frontend locally"
+	@echo "  make local-down                    Stop locally started services"
+	@echo "  make integration-test-local        Run all local integration tests"
+	@echo "  make integration-test-docker       Run integration tests in docker compose"
 
-build-backend: unit-test-backend
-	cd backend/endpointHandler && go build -o ../../bin/backend ./cmd/service
-	cd backend/jiraConnector && go build -o ../../bin/jiraconnector ./cmd/service
+# Main entrypoint: local integration tests
+integration-test: integration-test-local
 
-build-frontend:
-	cd frontend && npm run build
+integration-test-local: integration-test-local-connector integration-test-local-backend
 
-unit-test: unit-test-backend unit-test-frontend
+# Mock-based connector integration tests (does not require started services)
+integration-test-local-connector:
+	cd backend/jiraConnector && go test ./tests/integration/jiraApi/... -tags=integration -v
 
-unit-test-backend:
-	cd backend/endpointHandler && go test ./... -cover
-	cd backend/jiraConnector && go test ./... -cover
+# Full backend integration tests against running local services (localhost:8000)
+integration-test-local-backend:
+	powershell -NoProfile -Command "Set-Location backend/endpointHandler; $$env:BACKEND_BASE_URL='http://localhost:8000/api/v1'; go test ./tests/integration/... -tags=integration -v"
 
-unit-test-frontend:
-	cd frontend && npm test
